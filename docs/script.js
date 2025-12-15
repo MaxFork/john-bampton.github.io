@@ -323,7 +323,6 @@ function matchesPublicSponsors(user, sponsorsFilter) {
  */
 function matchesSponsoring(user, sponsoringFilter) {
     if (sponsoringFilter === 'any') return true;
-    console.log(user, user.sponsoring);
     if (sponsoringFilter === 'is-sponsoring') return user.sponsoring > 0;
     if (sponsoringFilter.startsWith('min-')) {
         const minSponsoring = parseInt(sponsoringFilter.split('-')[1]);
