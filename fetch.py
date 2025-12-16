@@ -399,7 +399,7 @@ def save_cache(users: List[Dict[str, Any]]) -> None:
     cache_file = os.path.join(CACHE_DIR, 'users.json')
     try:
         with open(cache_file, 'w', encoding='utf-8') as f:
-            json.dump(users, f, ensure_ascii=False)
+            json.dump(users, f, indent=(2 if os.environ.get('APP_ENV') == 'development' else None), ensure_ascii=False)
         logger.info(f"Cache saved ({len(users)} users)")
     except Exception as e:
         logger.error(f"Failed to save cache: {e}")
