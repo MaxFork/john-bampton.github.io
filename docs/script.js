@@ -88,25 +88,37 @@ function parseUserCard() {
 function prepareUserFromJson(user) {
     const getNum = (v, def = 0) => (v === 'N/A' || v == null ? def : parseInt(v, 10));
     const safeLower = v => (v ? String(v).toLowerCase() : '');
+    const normalizeDate = v => (v ? new Date(v).toISOString() : '');
+    const topLangs = Array.isArray(user.top_languages) ? user.top_languages : [];
 
     return {
         name: safeLower(user.name || user.login),
         login: safeLower(user.login),
         location: safeLower(user.location || ''),
         html_url: user.html_url,
-        avatar_updated_at: user.avatar_updated_at || '',
+        avatar_updated_at: normalizeDate(user.avatar_updated_at),
+        last_repo_pushed_at: normalizeDate(user.last_repo_pushed_at),
+        last_public_commit_at: normalizeDate(user.last_public_commit_at),
         followers: getNum(user.followers),
         following: getNum(user.following),
         repos: getNum(user.public_repos),
         forks: 0,
         sponsors: getNum(user.sponsors_count),
         sponsoring: getNum(user.sponsoring_count),
+        total_stars: getNum(user.total_stars),
+        top_languages: topLangs.map(l => ({
+            name: safeLower(l.name),
+            label: l.name,
+            bytes: getNum(l.bytes),
+            percent: l.percent
+        })),
         followers_display: user.followers_display || formatDisplay(user.followers),
         following_display: user.following_display || formatDisplay(user.following),
         repos_display: user.repos_display || formatDisplay(user.public_repos),
         gists_display: user.gists_display || formatDisplay(user.public_gists),
         sponsors_display: user.sponsors_display || formatDisplay(user.sponsors_count),
         sponsoring_display: user.sponsoring_display || formatDisplay(user.sponsoring_count),
+        stars_display: formatDisplay(user.total_stars),
         raw: user
     };
 }
@@ -115,6 +127,13 @@ function formatDisplay(val) {
     if (val === 'N/A' || val == null) return 'N/A';
     const num = parseInt(val, 10);
     return Number.isNaN(num) ? String(val) : num.toLocaleString();
+}
+
+function formatDateDisplay(val) {
+    if (!val) return 'N/A';
+    const dt = new Date(val);
+    if (Number.isNaN(dt.getTime())) return 'N/A';
+    return dt.toISOString().split('T')[0];
 }
 /**
  * Extract location emoji and text from card
@@ -141,7 +160,8 @@ function setupEventListeners() {
     const filterIds = [
         'searchInput', 'sortBy', 'followersFilter', 'maxFollowersFilter',
         'minReposFilter', 'maxReposFilter', 'minForksFilter', 'maxForksFilter',
-        'sponsorsFilter', 'sponsoringFilter', 'avatarAgeFilter'
+        'sponsorsFilter', 'sponsoringFilter', 'avatarAgeFilter',
+        'minStarsFilter', 'languageFilter', 'lastRepoActivityFilter', 'lastCommitFilter'
     ];
 
     filterIds.forEach(id => {
@@ -203,7 +223,11 @@ function getActiveFilters() {
         maxForks: parseInt(document.getElementById('maxForksFilter').value),
         sponsorsFilter: document.getElementById('sponsorsFilter').value,
         sponsoringFilter: document.getElementById('sponsoringFilter').value,
-        avatarAgeFilter: document.getElementById('avatarAgeFilter').value
+        avatarAgeFilter: document.getElementById('avatarAgeFilter').value,
+        minStars: parseInt(document.getElementById('minStarsFilter').value),
+        languageFilter: document.getElementById('languageFilter').value.toLowerCase().trim(),
+        lastRepoActivityFilter: document.getElementById('lastRepoActivityFilter').value,
+        lastCommitFilter: document.getElementById('lastCommitFilter').value
     };
 }
 
@@ -256,7 +280,11 @@ function matchesAllFilters(user, filters, dateRanges) {
         matchesForkRange(user, filters) &&
         matchesPublicSponsors(user, filters.sponsorsFilter) &&
         matchesSponsoring(user, filters.sponsoringFilter) &&
-        matchesAvatarAge(user, filters.avatarAgeFilter, dateRanges);
+        matchesAvatarAge(user, filters.avatarAgeFilter, dateRanges) &&
+        matchesStars(user, filters.minStars) &&
+        matchesLanguage(user, filters.languageFilter) &&
+        matchesRepoActivity(user, filters.lastRepoActivityFilter, dateRanges) &&
+        matchesCommitActivity(user, filters.lastCommitFilter, dateRanges);
 }
 
 /**
@@ -342,9 +370,9 @@ function matchesSponsoring(user, sponsoringFilter) {
  * @returns {boolean} True if matches
  */
 function matchesAvatarAge(user, ageFilter, dateRanges) {
-    if (ageFilter === 'any' || !user.avatarUpdated) return true;
+    if (ageFilter === 'any' || !user.avatar_updated_at) return true;
 
-    const avatarDate = new Date(user.avatarUpdated);
+    const avatarDate = new Date(user.avatar_updated_at);
     const ranges = {
         'week': avatarDate >= dateRanges.oneWeekAgo,
         'month': avatarDate >= dateRanges.oneMonthAgo,
@@ -356,6 +384,39 @@ function matchesAvatarAge(user, ageFilter, dateRanges) {
     };
 
     return ranges[ageFilter] !== undefined ? ranges[ageFilter] : true;
+}
+
+function matchesStars(user, minStars) {
+    return user.total_stars >= (Number.isNaN(minStars) ? 0 : minStars);
+}
+
+function matchesLanguage(user, languageFilter) {
+    if (!languageFilter) return true;
+    return user.top_languages.some(l => l.name.includes(languageFilter));
+}
+
+function matchesRepoActivity(user, activityFilter, dateRanges) {
+    if (activityFilter === 'any' || !user.last_repo_pushed_at) return true;
+    return matchesDateByRange(user.last_repo_pushed_at, activityFilter, dateRanges);
+}
+
+function matchesCommitActivity(user, commitFilter, dateRanges) {
+    if (commitFilter === 'any' || !user.last_public_commit_at) return true;
+    return matchesDateByRange(user.last_public_commit_at, commitFilter, dateRanges);
+}
+
+function matchesDateByRange(dateString, rangeKey, dateRanges) {
+    const dt = new Date(dateString);
+    const ranges = {
+        'week': dt >= dateRanges.oneWeekAgo,
+        'month': dt >= dateRanges.oneMonthAgo,
+        '6months': dt >= dateRanges.sixMonthsAgo,
+        'year': dt >= dateRanges.oneYearAgo,
+        '2years': dt >= dateRanges.twoYearsAgo,
+        '5years': dt >= dateRanges.fiveYearsAgo,
+        'old': dt < dateRanges.fiveYearsAgo
+    };
+    return ranges[rangeKey] !== undefined ? ranges[rangeKey] : true;
 }
 
 
@@ -395,6 +456,12 @@ function getSortedUsers(sortBy) {
         'sponsors-asc': (a, b) => a.sponsors - b.sponsors,
         'sponsoring-desc': (a, b) => b.sponsoring - a.sponsoring,
         'sponsoring-asc': (a, b) => a.sponsoring - b.sponsoring,
+        'stars-desc': (a, b) => b.total_stars - a.total_stars,
+        'stars-asc': (a, b) => a.total_stars - b.total_stars,
+        'last-repo-desc': (a, b) => new Date(b.last_repo_pushed_at || 0) - new Date(a.last_repo_pushed_at || 0),
+        'last-repo-asc': (a, b) => new Date(a.last_repo_pushed_at || 0) - new Date(b.last_repo_pushed_at || 0),
+        'last-commit-desc': (a, b) => new Date(b.last_public_commit_at || 0) - new Date(a.last_public_commit_at || 0),
+        'last-commit-asc': (a, b) => new Date(a.last_public_commit_at || 0) - new Date(b.last_public_commit_at || 0),
         'name-asc': (a, b) => a.name.localeCompare(b.name),
         'name-desc': (a, b) => b.name.localeCompare(a.name),
         'ratio-followers-following': (a, b) => {
@@ -437,6 +504,7 @@ function buildCardElement(user) {
     card.setAttribute('data-login', user.login);
     card.setAttribute('data-location', user.location);
     card.setAttribute('data-avatar-updated', user.avatar_updated_at || '');
+    card.setAttribute('data-stars', user.total_stars || 0);
 
     const link = document.createElement('a');
     link.href = user.html_url;
@@ -477,7 +545,27 @@ function buildCardElement(user) {
     statsRow.appendChild(buildStat(user.raw.public_gists !== 'N/A', `https://gist.github.com/${user.raw.login}`, user.gists_display, 'Gists'));
     statsRow.appendChild(buildStat(user.raw.sponsors_count !== 'N/A', `${user.html_url}?tab=sponsors`, user.sponsors_display, 'Public Sponsors'));
     statsRow.appendChild(buildStat(user.raw.sponsoring_count !== 'N/A', `${user.html_url}?tab=sponsoring`, user.sponsoring_display, 'Public Sponsoring'));
+    statsRow.appendChild(buildStat(true, `${user.html_url}?tab=repositories`, user.stars_display, 'Total Stars'));
     box.appendChild(statsRow);
+
+    // Last activity info
+    const activity = document.createElement('div');
+    activity.className = 'activity-row';
+    activity.textContent = `Last commit: ${formatDateDisplay(user.last_repo_pushed_at)} • Last public commit: ${formatDateDisplay(user.last_public_commit_at)}`;
+    box.appendChild(activity);
+
+    // Top languages
+    if (user.top_languages.length) {
+        const langRow = document.createElement('div');
+        langRow.className = 'lang-row';
+        user.top_languages.slice(0, 3).forEach(lang => {
+            const pill = document.createElement('span');
+            pill.className = 'lang-pill';
+            pill.textContent = `${lang.label}${lang.percent ? ` (${lang.percent}%)` : ''}`;
+            langRow.appendChild(pill);
+        });
+        box.appendChild(langRow);
+    }
 
     card.appendChild(link);
     card.appendChild(box);
@@ -581,7 +669,11 @@ function resetFilters() {
         maxForksFilter: '999999',
         sponsorsFilter: 'any',
         sponsoringFilter: 'any',
-        avatarAgeFilter: 'any'
+        avatarAgeFilter: 'any',
+        minStarsFilter: '0',
+        languageFilter: '',
+        lastRepoActivityFilter: 'any',
+        lastCommitFilter: 'any'
     };
 
     Object.entries(defaults).forEach(([id, value]) => {

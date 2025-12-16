@@ -76,6 +76,12 @@
                         <option value="sponsors-asc">Least Public Sponsors</option>
                         <option value="sponsoring-desc">Most Sponsoring</option>
                         <option value="sponsoring-asc">Least Sponsoring</option>
+                        <option value="stars-desc">Most Stars</option>
+                        <option value="stars-asc">Least Stars</option>
+                        <option value="last-repo-desc">Recent Repo Activity</option>
+                        <option value="last-repo-asc">Oldest Repo Activity</option>
+                        <option value="last-commit-desc">Recent Public Commit</option>
+                        <option value="last-commit-asc">Oldest Public Commit</option>
                         <option value="ratio-followers-following">Followers/Following Ratio</option>
                         <option value="name-asc">Name (A-Z)</option>
                         <option value="name-desc">Name (Z-A)</option>
@@ -191,6 +197,54 @@
                 <div class="filter-group">
                     <label for="avatarAgeFilter">Avatar Updated:</label>
                     <select id="avatarAgeFilter">
+                        <option value="any">Any</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="6months">Last 6 Months</option>
+                        <option value="year">This Year</option>
+                        <option value="2years">Last 2 Years</option>
+                        <option value="5years">Less than 5 Years</option>
+                        <option value="old">Over 5 Years</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="minStarsFilter">Min Stars (total):</label>
+                    <select id="minStarsFilter">
+                        <option value="0">Any</option>
+                        <option value="100">100+</option>
+                        <option value="1000">1K+</option>
+                        <option value="5000">5K+</option>
+                        <option value="10000">10K+</option>
+                        <option value="50000">50K+</option>
+                        <option value="100000">100K+</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="languageFilter">Language:</label>
+                    <div class="search-input-wrapper">
+                        <input type="text" id="languageFilter" placeholder="e.g. TypeScript">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="lastRepoActivityFilter">Last Repo Activity:</label>
+                    <select id="lastRepoActivityFilter">
+                        <option value="any">Any</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="6months">Last 6 Months</option>
+                        <option value="year">This Year</option>
+                        <option value="2years">Last 2 Years</option>
+                        <option value="5years">Less than 5 Years</option>
+                        <option value="old">Over 5 Years</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="lastCommitFilter">Last Public Commit:</label>
+                    <select id="lastCommitFilter">
                         <option value="any">Any</option>
                         <option value="week">This Week</option>
                         <option value="month">This Month</option>
