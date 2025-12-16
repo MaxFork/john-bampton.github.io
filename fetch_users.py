@@ -206,7 +206,6 @@ def enrich_user_with_details(user: Dict[str, Any], idx: int, total: int) -> None
     user['top_languages'] = summarize_top_languages(lang_totals)
     user['total_stars'] = total_stars
     user['last_repo_pushed_at'] = last_repo_push_at
-
     user['last_public_commit_at'] = fetch_last_public_commit_at(user['login'])
     
     logger.info(f"[{idx}/{total} - {progress:.1f}%] Fetched details for {user['login']}")
