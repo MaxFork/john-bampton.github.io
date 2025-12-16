@@ -7,7 +7,7 @@ import requests
 import logging
 from typing import List, Dict, Any
 
-CACHE_DIR = './temp/cache'
+CACHE_DIR = './cache'
 FACES_DIR = './docs/images/faces'
 GITHUB_USER_SEARCH_URL = 'https://api.github.com/search/users?q=followers:1..10000000&per_page=100&page='
 GITHUB_USER_DETAIL_URL = 'https://api.github.com/users/{}'

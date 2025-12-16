@@ -30,6 +30,7 @@
  */
 let allUsers = [];
 let filteredUsers = [];
+let isDataLoaded = false;
 
 // ============================================================================
 // INITIALIZATION
@@ -39,17 +40,40 @@ document.addEventListener('DOMContentLoaded', initializeApp);
 /**
  * Initialize the application on page load
  */
-function initializeApp() {
-    const cards = document.querySelectorAll('.card');
+async function initializeApp() {
     showLoadingState();
-    document.getElementById('totalCount').textContent = cards.length.toLocaleString();
-    document.getElementById('totalCountDesktop').textContent = cards.length.toLocaleString();
-    cards.forEach(card => allUsers.push(parseUserCard(card)));
-    filteredUsers = [...allUsers];
     setupEventListeners();
+    await fetchAndPrepareUsers();
     applyFilters();
     updateVisibilityAndSort();
     hideLoadingState();
+}
+
+async function fetchAndPrepareUsers() {
+    try {
+        const res = await fetch('users.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Failed to fetch users.json: ${res.status}`);
+        const users = await res.json();
+        const prepared = users.map(prepareUserFromJson);
+        allUsers = prepared;
+        filteredUsers = [...allUsers];
+        isDataLoaded = true;
+        const total = allUsers.length;
+        document.getElementById('totalCount').textContent = total.toLocaleString();
+        document.getElementById('totalCountDesktop').textContent = total.toLocaleString();
+    } catch (err) {
+        console.error(err);
+        const noResults = document.getElementById('noResults');
+        const noResultsDesktop = document.getElementById('noResultsDesktop');
+        if (noResults) {
+            noResults.textContent = 'Unable to load users. Please try again later.';
+            noResults.style.display = 'block';
+        }
+        if (noResultsDesktop) {
+            noResultsDesktop.textContent = 'Unable to load users. Please try again later.';
+            noResultsDesktop.style.display = 'block';
+        }
+    }
 }
 
 /**
@@ -57,75 +81,54 @@ function initializeApp() {
  * @param {HTMLElement} card - The card element to parse
  * @returns {Object} User object with extracted data
  */
-function parseUserCard(card) {
-    const name = card.querySelector('strong').textContent.toLowerCase();
-    const login = card.querySelector('span:nth-of-type(2)').textContent.toLowerCase();
-    const location = extractLocation(card);
-    const followers = parseInt(card.getAttribute('data-followers') || '0');
-    const following = parseInt(card.getAttribute('data-following') || '0');
-    const repos = parseInt(card.getAttribute('data-repos') || '0');
-    const forks = parseInt(card.getAttribute('data-forks') || '0');
-    const {
-        sponsors,
-        sponsoring
-    } = extractStats(card);
-    const avatarUpdated = card.getAttribute('data-avatar-updated') || '';
+function parseUserCard() {
+    return {};
+}
+
+function prepareUserFromJson(user) {
+    const getNum = (v, def = 0) => (v === 'N/A' || v == null ? def : parseInt(v, 10));
+    const safeLower = v => (v ? String(v).toLowerCase() : '');
 
     return {
-        card,
-        name,
-        login,
-        location,
-        followers,
-        following,
-        repos,
-        forks,
-        sponsors,
-        sponsoring,
-        avatarUpdated
+        name: safeLower(user.name || user.login),
+        login: safeLower(user.login),
+        location: safeLower(user.location || ''),
+        html_url: user.html_url,
+        avatar_updated_at: user.avatar_updated_at || '',
+        followers: getNum(user.followers),
+        following: getNum(user.following),
+        repos: getNum(user.public_repos),
+        forks: 0,
+        sponsors: getNum(user.sponsors_count),
+        sponsoring: getNum(user.sponsoring_count),
+        followers_display: user.followers_display || formatDisplay(user.followers),
+        following_display: user.following_display || formatDisplay(user.following),
+        repos_display: user.repos_display || formatDisplay(user.public_repos),
+        gists_display: user.gists_display || formatDisplay(user.public_gists),
+        sponsors_display: user.sponsors_display || formatDisplay(user.sponsors_count),
+        sponsoring_display: user.sponsoring_display || formatDisplay(user.sponsoring_count),
+        raw: user
     };
+}
+
+function formatDisplay(val) {
+    if (val === 'N/A' || val == null) return 'N/A';
+    const num = parseInt(val, 10);
+    return Number.isNaN(num) ? String(val) : num.toLocaleString();
 }
 /**
  * Extract location emoji and text from card
  * @param {HTMLElement} card - The card element
  * @returns {string} Location text in lowercase
  */
-function extractLocation(card) {
-    const spans = card.querySelectorAll('span');
-    for (let span of spans) {
-        if (span.textContent.includes('🌐')) {
-            return span.textContent.toLowerCase();
-        }
-    }
-    return '';
-}
+function extractLocation() { return ''; }
 
 /**
  * Extract sponsors and sponsoring counts from stats
  * @param {HTMLElement} card - The card element
  * @returns {Object} Object with sponsors and sponsoring counts
  */
-function extractStats(card) {
-    let sponsors = 0;
-    let sponsoring = 0;
-    const statSpans = card.querySelectorAll('.stat a, .stat');
-
-    statSpans.forEach(stat => {
-        const label = stat.nextElementSibling;
-        if (label && label.classList.contains('stat-label')) {
-            const text = stat.textContent.trim();
-            const value = text === 'N/A' ? 0 : parseInt(text.replace(/,/g, ''));
-
-            if (label.textContent === 'Public Sponsors') sponsors = value;
-            if (label.textContent === 'Public Sponsoring') sponsoring = value;
-        }
-    });
-
-    return {
-        sponsors,
-        sponsoring
-    };
-}
+function extractStats() { return { sponsors: 0, sponsoring: 0 }; }
 
 
 // ============================================================================
@@ -144,8 +147,8 @@ function setupEventListeners() {
     filterIds.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
-            const eventType = id === 'searchInput' ? 'input' : 'change';
-            element.addEventListener(eventType, onFilterChange);
+            element.addEventListener('input', onFilterChange);
+            element.addEventListener('change', onFilterChange);
         }
     });
 }
@@ -414,11 +417,108 @@ function getSortedUsers(sortBy) {
  */
 function renderCards(sortedUsers) {
     const grid = document.getElementById('grid');
-    allUsers.forEach(user => user.card.classList.remove('visible'));
+    if (!grid) return;
+    grid.innerHTML = '';
+    const frag = document.createDocumentFragment();
     sortedUsers.forEach(user => {
-        user.card.classList.add('visible');
-        grid.appendChild(user.card);
+        const card = buildCardElement(user);
+        frag.appendChild(card);
     });
+    grid.appendChild(frag);
+}
+
+function buildCardElement(user) {
+    const card = document.createElement('div');
+    card.className = 'card visible';
+    card.setAttribute('data-followers', user.followers);
+    card.setAttribute('data-repos', user.repos);
+    card.setAttribute('data-forks', user.forks);
+    card.setAttribute('data-name', user.name);
+    card.setAttribute('data-login', user.login);
+    card.setAttribute('data-location', user.location);
+    card.setAttribute('data-avatar-updated', user.avatar_updated_at || '');
+
+    const link = document.createElement('a');
+    link.href = user.html_url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+
+    const img = document.createElement('img');
+    img.src = `images/faces/${user.login}.png`;
+    img.alt = user.login;
+    img.title = user.login;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    link.appendChild(img);
+
+    const box = document.createElement('div');
+    box.className = 'details-box';
+
+    const strong = document.createElement('strong');
+    strong.textContent = user.raw.name || user.raw.login;
+    const atSpan = document.createElement('span');
+    atSpan.textContent = `@${user.raw.login}`;
+
+    box.appendChild(strong);
+    box.appendChild(atSpan);
+
+    box.appendChild(buildLabeledSpan('Followers:', user.raw.followers !== 'N/A', `${user.html_url}?tab=followers`, user.followers_display));
+    box.appendChild(buildLabeledSpan('Following:', user.raw.following !== 'N/A', `${user.html_url}?tab=following`, user.following_display));
+
+    if (user.raw.location) {
+        const locSpan = document.createElement('span');
+        locSpan.textContent = `🌐 ${user.raw.location}`;
+        box.appendChild(locSpan);
+    }
+
+    const statsRow = document.createElement('div');
+    statsRow.className = 'stats-row';
+    statsRow.appendChild(buildStat(user.raw.public_repos !== 'N/A', `${user.html_url}?tab=repositories`, user.repos_display, 'Repos'));
+    statsRow.appendChild(buildStat(user.raw.public_gists !== 'N/A', `https://gist.github.com/${user.raw.login}`, user.gists_display, 'Gists'));
+    statsRow.appendChild(buildStat(user.raw.sponsors_count !== 'N/A', `${user.html_url}?tab=sponsors`, user.sponsors_display, 'Public Sponsors'));
+    statsRow.appendChild(buildStat(user.raw.sponsoring_count !== 'N/A', `${user.html_url}?tab=sponsoring`, user.sponsoring_display, 'Public Sponsoring'));
+    box.appendChild(statsRow);
+
+    card.appendChild(link);
+    card.appendChild(box);
+    return card;
+}
+
+function buildLabeledSpan(labelText, hasLink, href, valueText) {
+    const span = document.createElement('span');
+    const labelNode = document.createTextNode(`${labelText} `);
+    span.appendChild(labelNode);
+    if (hasLink) {
+        const a = document.createElement('a');
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = valueText;
+        span.appendChild(a);
+    } else {
+        span.appendChild(document.createTextNode(valueText));
+    }
+    return span;
+}
+
+function buildStat(hasLink, href, valueText, label) {
+    const stat = document.createElement('div');
+    stat.className = 'stat';
+    if (hasLink) {
+        const a = document.createElement('a');
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = valueText;
+        stat.appendChild(a);
+    } else {
+        stat.appendChild(document.createTextNode(valueText));
+    }
+    const lbl = document.createElement('span');
+    lbl.className = 'stat-label';
+    lbl.textContent = label;
+    stat.appendChild(lbl);
+    return stat;
 }
 
 /**
@@ -455,11 +555,6 @@ function updateResultsMessage(sortedUsers) {
         if (noResults) noResults.style.display = 'block';
         if (resultsFoundDesktop) resultsFoundDesktop.style.display = 'none';
         if (noResultsDesktop) noResultsDesktop.style.display = 'block';
-    } else if (visibleCount === totalCount) {
-        if (resultsFound) resultsFound.style.display = 'none';
-        if (noResults) noResults.style.display = 'none';
-        if (resultsFoundDesktop) resultsFoundDesktop.style.display = 'none';
-        if (noResultsDesktop) noResultsDesktop.style.display = 'none';
     } else {
         if (resultsFound) resultsFound.style.display = 'block';
         if (noResults) noResults.style.display = 'none';

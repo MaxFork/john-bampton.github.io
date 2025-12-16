@@ -1,10 +1,9 @@
 .idea
 
 # Cache and temp files
-temp/
 cache/
-*.cache
-*.json
+# *.cache
+# *.json
 
 # Python
 __pycache__/
