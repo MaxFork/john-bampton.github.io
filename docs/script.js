@@ -76,15 +76,6 @@ async function fetchAndPrepareUsers() {
     }
 }
 
-/**
- * Parse user data from a card element
- * @param {HTMLElement} card - The card element to parse
- * @returns {Object} User object with extracted data
- */
-function parseUserCard() {
-    return {};
-}
-
 function prepareUserFromJson(user) {
     const getNum = (v, def = 0) => (v === 'N/A' || v == null ? def : parseInt(v, 10));
     const safeLower = v => (v ? String(v).toLowerCase() : '');

@@ -12,6 +12,7 @@ LAYOUTS_DIR = './layouts'
 jinja_env = Environment(loader=FileSystemLoader(LAYOUTS_DIR))
 
 def setup_logger() -> logging.Logger:
+    """Initialize and configure logger for HTML rendering."""
     logger = logging.getLogger("GithubFaces.HTML")
     logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()
@@ -27,11 +28,13 @@ def setup_logger() -> logging.Logger:
 logger = setup_logger()
 
 def ensure_dir(path: str) -> None:
+    """Create directory if it doesn't exist."""
     if not os.path.exists(path):
         os.makedirs(path)
         logger.info(f"Created directory: {path}")
 
 def format_number(num: Any) -> str:
+    """Format number with comma separators or return 'N/A' for invalid values."""
     if num == 'N/A' or num is None:
         return 'N/A'
     try:
@@ -40,6 +43,7 @@ def format_number(num: Any) -> str:
         return str(num)
 
 def prepare_users(users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Add formatted display fields to user data for template rendering."""
     prepared = []
     for user in users:
         followers = user.get('followers', 'N/A')
@@ -61,6 +65,7 @@ def prepare_users(users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return prepared
 
 def load_cache(cache_file: str = CACHE_FILE) -> List[Dict[str, Any]]:
+    """Load user data from JSON cache file."""
     if not os.path.exists(cache_file):
         logger.error(f"Cache file not found: {cache_file}")
         logger.error("Please run fetch_users.py first to fetch and cache user data.")
@@ -121,6 +126,7 @@ def minify_css(code: str) -> str:
     return code.strip()
 
 def run() -> None:
+    """Main entry point: load cache, export JSON, and generate minified HTML shell."""
     ensure_dir(SITE_DIR)
     
     logger.info("Loading user data from cache...")

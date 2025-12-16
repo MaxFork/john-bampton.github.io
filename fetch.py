@@ -234,6 +234,10 @@ def fetch_user_repo_summary(login: str, max_repos: int = 200) -> Tuple[Dict[str,
     return fetch_user_repo_summary_rest(login, max_repos)
 
 def fetch_user_repo_summary_graphql(login: str, max_repos: int = 200) -> Tuple[Dict[str, int], int, str]:
+    """Fetch repo summary via GraphQL with language byte sizes, stars, and last push date.
+    
+    Returns: (language_bytes_map, total_stars, last_repo_pushed_at)
+    """
     headers = get_github_headers()
     lang_totals: Dict[str, int] = {}
     total_stars = 0
@@ -330,10 +334,13 @@ def fetch_user_repo_summary_rest(login: str, max_repos: int = 200) -> Tuple[Dict
                 break
         page += 1
 
-    lang_totals = {k: v for k, v in lang_counts.items()}
-    return lang_totals, total_stars, last_push
+    return lang_counts, total_stars, last_push
 
 def summarize_top_languages(lang_totals: Dict[str, int], top_n: int = 5) -> List[Dict[str, Any]]:
+    """Convert language totals to sorted list with percentages.
+    
+    Returns: List of top N languages with name, bytes, and percent.
+    """
     total = sum(lang_totals.values()) or 1
     top = sorted(lang_totals.items(), key=lambda kv: kv[1], reverse=True)[:top_n]
     return [
