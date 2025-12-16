@@ -37,21 +37,16 @@
         <img class="github-ribbon" src="images/other/fork.png" alt="Fork me on GitHub">
     </a>
 
-<!-- Mobile Filter Toggle Button -->
 <button id="filterToggleBtn" class="filter-toggle-btn" onclick="toggleFiltersPanel()" aria-label="Toggle filters">
     🔍 Filters
 </button>
 
-<!-- Main Layout -->
 <div class="main-layout">
-    <!-- Header -->
     <header class="header-section">
         <div id="head"><h1>Top GitHub Faces</h1></div>
     </header>
 
-    <!-- Filters Aside -->
     <aside id="filtersAside" class="filters-aside">
-        <!-- Mobile Close Button -->
         <button id="filterCloseBtn" class="filter-close-btn" onclick="toggleFiltersPanel()" aria-label="Close filters">
             ✕
         </button>
@@ -65,7 +60,6 @@
                     <span class="search-icon">🔎</span>
                 </div>
 
-                <!-- Sort -->
                 <div class="filter-group">
                     <label for="sortBy">Sort by:</label>
                     <select id="sortBy">
@@ -87,7 +81,6 @@
                     </select>
                 </div>
 
-                <!-- Followers Filters -->
                 <div class="filter-group">
                     <label for="followersFilter">Min Followers:</label>
                     <select id="followersFilter">
@@ -118,7 +111,6 @@
                     </select>
                 </div>
 
-                <!-- Repository Filters -->
                 <div class="filter-group">
                     <label for="minReposFilter">Min Repos:</label>
                     <select id="minReposFilter">
@@ -145,7 +137,6 @@
                     </select>
                 </div>
 
-                <!-- Forks Filters -->
                 <div class="filter-group">
                     <label for="minForksFilter">Min Forks:</label>
                     <select id="minForksFilter">
@@ -171,7 +162,6 @@
                     </select>
                 </div>
 
-                <!-- Public Sponsors Filters -->
                 <div class="filter-group">
                     <label for="sponsorsFilter">Public Sponsors:</label>
                     <select id="sponsorsFilter">
@@ -197,7 +187,6 @@
                     </select>
                 </div>
 
-                <!-- Avatar Age Filter -->
                 <div class="filter-group">
                     <label for="avatarAgeFilter">Avatar Updated:</label>
                     <select id="avatarAgeFilter">
@@ -213,19 +202,16 @@
                 </div>
             </div>
 
-            <!-- Buttons -->
             <div class="filters-buttons">
                 <button class="btn-apply" onclick="toggleFiltersPanel()">Apply Filters</button>
                 <button class="btn-reset" onclick="resetFilters()">Reset</button>
             </div>
 
-            <!-- Loading State -->
             <div class="results-info" id="loadingState" style="display: none;">
                 <div class="loading-spinner"></div>
                 <div>Loading developers...</div>
             </div>
 
-            <!-- Results Info -->
             <div class="results-info" id="resultsInfo">
                 <div id="resultsFound">
                     Showing <strong id="visibleCount">0</strong> of <strong id="totalCount">0</strong> developers
@@ -237,15 +223,12 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Loading State for Desktop -->
         <div class="results-info-desktop" id="loadingStateDesktop" style="display: none;">
             <div class="loading-spinner"></div>
             <div>Loading developers...</div>
         </div>
 
-        <!-- Results Info for Desktop -->
         <div class="results-info-desktop" id="resultsInfoDesktop">
             <div id="resultsFoundDesktop">
                 Showing <strong id="visibleCountDesktop">0</strong> of <strong id="totalCountDesktop">0</strong> developers
@@ -254,4 +237,33 @@
                 <strong>No developers found</strong> matching your filters.
             </div>
         </div>
-        <!-- grid will be injected here by github_faces.py -->
+
+        <div class="grid" id="grid"></div>
+</main>
+</div>
+
+<footer>
+  <p>© 2025 <a href="https://github.com/john-bampton/john-bampton.github.io" target="_blank" rel="noopener noreferrer">John Bampton and Seyyed Ali Mohammadiyeh (Max Base)</a>. Licensed under the <a href="https://github.com/john-bampton/john-bampton.github.io/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>.</p>
+</footer>
+
+<script src="bootstrap/js/jquery.min.js"></script>
+<script src="bootstrap/js/popper.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="script.js?version=3"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(registration => {
+        console.log('✓ Service Worker registered:', registration);
+      })
+      .catch(error => {
+        console.warn('✗ Service Worker registration failed:', error);
+      });
+  });
+}
+</script>
+</body>
+</html>
+

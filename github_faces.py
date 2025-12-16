@@ -76,21 +76,53 @@ def load_cache(cache_file: str = CACHE_FILE) -> List[Dict[str, Any]]:
         return []
 
 def build_html() -> str:
-    header_template = jinja_env.get_template('header.html')
-    footer_template = jinja_env.get_template('footer.html')
+    """Build the HTML layout using Jinja2 templates."""
+    layout_template = jinja_env.get_template('layout.html')
+    layout = layout_template.render()
     
-    header = header_template.render()
-    footer = footer_template.render()
-    
-    grid = '<div class="grid" id="grid"></div>'
-    
-    return header + grid + footer
-
+    return layout
 
 def minify_html(html: str) -> str:
-    """Lightweight HTML minifier to trim whitespace between tags."""
+    """Aggressive HTML minifier: remove comments, collapse whitespace, minify inline code."""
+    html = html.replace('\r\n', '\n')
+    html = re.sub("""
+""", '\n', html)
+    html = re.sub(r'\n+', ' ', html)
+    html = re.sub(r'<!--[\s\S]*?-->', '', html)
     html = re.sub(r'>\s+<', '><', html)
+    html = re.sub(r'\s{2,}', ' ', html)
+    html = re.sub(r'\s*=\s*', '=', html)
+    html = re.sub(r',\s+', ',', html)
+    html = re.sub(
+        r'<script>(.*?)</script>',
+        lambda m: '<script>' + minify_js(m.group(1)) + '</script>',
+        html,
+        flags=re.DOTALL
+    )
+    html = re.sub(
+        r'<style>(.*?)</style>',
+        lambda m: '<style>' + minify_css(m.group(1)) + '</style>',
+        html,
+        flags=re.DOTALL
+    )
     return html.strip()
+
+def minify_js(code: str) -> str:
+    """Minify inline JavaScript: remove comments, unnecessary whitespace."""
+    code = re.sub(r'//(?!.*:).*?$', '', code, flags=re.MULTILINE)
+    code = re.sub(r'/\*[\s\S]*?\*/', '', code)
+    code = re.sub(r'\s+', ' ', code)
+    code = re.sub(r'\s*([{}();,])\s*', r'\1', code)
+    code = re.sub(r'\s*([+\-*/=:<>!&|?:])\s*', r' \1 ', code)
+    code = re.sub(r'\s+', ' ', code)
+    return code.strip()
+
+def minify_css(code: str) -> str:
+    """Minify inline CSS: remove comments, collapse whitespace, remove unnecessary spaces."""
+    code = re.sub(r'/\*[\s\S]*?\*/', '', code)
+    code = re.sub(r'\s+', ' ', code)
+    code = re.sub(r'\s*([{}:;,>+~])\s*', r'\1', code)
+    return code.strip()
 
 def run() -> None:
     ensure_dir(SITE_DIR)
