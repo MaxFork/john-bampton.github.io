@@ -550,7 +550,10 @@ function buildCardElement(user) {
 
     const activity = document.createElement('div');
     activity.className = 'activity-row';
-    activity.textContent = `Last commit: ${formatDateDisplay(user.last_repo_pushed_at)} • Last public commit: ${formatDateDisplay(user.last_public_commit_at)}`;
+    let commitText = `Last commit: ${formatDateDisplay(user.last_repo_pushed_at)}`;
+    if (user.last_public_commit_at !== "N/A") commitText += `<br>Last public commit: ${formatDateDisplay(user.last_public_commit_at)}`;
+    activity.textContent = commitText;
+
     box.appendChild(activity);
 
     if (user.top_languages.length) {
