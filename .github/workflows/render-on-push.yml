@@ -4,18 +4,18 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '**.py'
-      - 'layouts/**'
-      - 'docs/styles.css'
-      - 'docs/script.js'
+    # paths:
+    #   - '**.py'
+    #   - 'layouts/**'
+    #   - 'docs/styles.css'
+    #   - 'docs/script.js'
   pull_request:
     types: [closed]
   workflow_dispatch:
 
 jobs:
   render-html:
-    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request && github.event.pull_request.merged == true) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,7 +26,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.14'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
@@ -45,4 +45,4 @@ jobs:
           force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: ${{ github.event_name == 'pull_request' && 'chore: deploy from merged PR' || 'chore: deploy after code changes' }}
+          commit_message: 'chore: deploy from new update'
