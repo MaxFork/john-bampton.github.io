@@ -36,14 +36,13 @@ jobs:
       - name: Run render.py
         run: python render.py
 
-      - name: Commit and push changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/index.html
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            git commit -m "chore: render HTML from merged PR"
-          else
-            git commit -m "chore: render HTML after code changes"
-          fi
-          git push origin main
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: ${{ github.event_name == 'pull_request' && 'chore: deploy from merged PR' || 'chore: deploy after code changes' }}
