@@ -76,18 +76,14 @@ def load_cache(cache_file: str = CACHE_FILE) -> List[Dict[str, Any]]:
         logger.error(f"Failed to load cache: {e}")
         return []
 
-def build_html(users: List[Dict[str, Any]]) -> str:
+def build_html() -> str:
     header_template = jinja_env.get_template('header.html')
     footer_template = jinja_env.get_template('footer.html')
-    cards_template = jinja_env.get_template('card.html')
-    
-    prepared_users = prepare_users(users)
     
     header = header_template.render()
-    cards = cards_template.render(users=prepared_users)
     footer = footer_template.render()
     
-    grid = f'<div class="grid" id="grid">{cards}</div>'
+    grid = '<div class="grid" id="grid"></div>'
     
     return header + grid + footer
 
@@ -107,14 +103,23 @@ def run() -> None:
         logger.error("No users found in cache. Please run fetch_users.py first.")
         return
     
-    logger.info("Building HTML page...")
-    html_content = minify_html(build_html(users))
+    try:
+        output_json = os.path.join(SITE_DIR, 'users.json')
+        with open(output_json, 'w', encoding='utf-8') as jf:
+            json.dump(users, jf, ensure_ascii=False)
+        logger.info(f"Exported users.json to {output_json}")
+    except Exception as e:
+        logger.error(f"Failed to export users.json: {e}")
+        return
+
+    logger.info("Building HTML shell (header + footer + empty grid)...")
+    html_content = minify_html(build_html())
     
     try:
         output_file = os.path.join(SITE_DIR, 'index.html')
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(html_content)
-        logger.info(f"HTML page saved successfully. Total users: {len(users)}")
+        logger.info(f"HTML shell saved successfully. Total users available: {len(users)}")
     except Exception as e:
         logger.error(f"Failed to save HTML page: {e}")
 
