@@ -27,13 +27,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
-      - name: Run fetch_users.py
+      - name: Run fetch.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python fetch_users.py
+        run: python fetch.py
 
-      - name: Run github_faces.py
-        run: python github_faces.py
+      - name: Run render.py
+        run: python render.py
 
       - name: Check for changes
         id: changes
