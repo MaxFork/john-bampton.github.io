@@ -551,7 +551,7 @@ function buildCardElement(user) {
     const activity = document.createElement('div');
     activity.className = 'activity-row';
     let commitText = `Last commit: ${formatDateDisplay(user.last_repo_pushed_at)}`;
-    if (user.last_public_commit_at !== "N/A") commitText += `<br>Last public commit: ${formatDateDisplay(user.last_public_commit_at)}`;
+    if (user.last_public_commit_at) commitText += `<br>Last public commit: ${formatDateDisplay(user.last_public_commit_at)}`;
     activity.innerHTML = commitText;
 
     box.appendChild(activity);
