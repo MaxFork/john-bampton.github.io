@@ -14,7 +14,8 @@ GITHUB_USER_DETAIL_URL = 'https://api.github.com/users/{}'
 GITHUB_USER_REPOS_URL = 'https://api.github.com/users/{}/repos?type=owner&per_page=100&sort=updated'
 GITHUB_GRAPHQL_URL = 'https://api.github.com/graphql'
 
-TARGET_USERS = 400
+# TARGET_USERS = 400
+TARGET_USERS = 20
 MAX_EXTRA_PAGES = 2
 
 def setup_logger() -> logging.Logger:
