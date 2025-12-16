@@ -1,7 +1,7 @@
 .idea
 
 # Cache and temp files
-# docs/users.json
+docs/index.html
 
 # Python
 __pycache__/
