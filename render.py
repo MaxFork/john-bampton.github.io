@@ -137,15 +137,6 @@ def run() -> None:
         logger.error("No users found in cache. Please run fetch_users.py first.")
         return
     
-    try:
-        output_json = os.path.join(SITE_DIR, 'users.json')
-        with open(output_json, 'w', encoding='utf-8') as jf:
-            json.dump(users, jf, ensure_ascii=False)
-        logger.info(f"Exported users.json to {output_json}")
-    except Exception as e:
-        logger.error(f"Failed to export users.json: {e}")
-        return
-
     logger.info("Building HTML shell (header + footer + empty grid)...")
     html_content = minify_html(build_html())
     
