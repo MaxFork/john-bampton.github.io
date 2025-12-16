@@ -49,6 +49,45 @@ async function initializeApp() {
     hideLoadingState();
 }
 
+/**
+ * Pick and highlight a random user from the filtered list
+ */
+function pickRandomUser() {
+    const usersToPickFrom = filteredUsers.length > 0 ? filteredUsers : allUsers;
+    if (usersToPickFrom.length === 0) {
+        const msg = document.createElement('div');
+        msg.className = 'toast-notification';
+        msg.textContent = '🎲 No developers found! Try adjusting your filters.';
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
+        return;
+    }
+
+    const filtersAside = document.getElementById('filtersAside');
+    if (filtersAside && filtersAside.classList.contains('open')) {
+        toggleFiltersPanel();
+    }
+
+    const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
+    const randomUser = usersToPickFrom[randomIndex];
+    
+    if (!randomUser.card) {
+        return;
+    }
+
+    randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    setTimeout(() => {
+        randomUser.card.classList.remove('highlight');
+        void randomUser.card.offsetWidth;
+        randomUser.card.classList.add('highlight');
+        
+        setTimeout(() => {
+            randomUser.card.classList.remove('highlight');
+        }, 3000);
+    }, 500);
+}
+
 async function fetchAndPrepareUsers() {
     try {
         const res = await fetch('users.json', { cache: 'no-store' });
@@ -162,6 +201,11 @@ function setupEventListeners() {
             element.addEventListener('change', onFilterChange);
         }
     });
+
+    const randomBtn = document.getElementById('randomUserBtn');
+    if (randomBtn) {
+        randomBtn.addEventListener('click', pickRandomUser);
+    }
 }
 
 /**

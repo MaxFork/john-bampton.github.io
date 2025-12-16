@@ -1,11 +1,17 @@
-import os
 import json
+import logging
+import os
 import time
 from calendar import timegm
+from typing import Any, Dict, List
 from urllib.request import urlretrieve
+
 import requests
+<<<<<<< HEAD:fetch.py
 import logging
 from typing import List, Dict, Any, Tuple
+=======
+>>>>>>> upstream/main:fetch_users.py
 
 CACHE_DIR = './docs'
 FACES_DIR = './docs/images/faces'
