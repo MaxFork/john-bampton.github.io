@@ -61,6 +61,7 @@ function parseUserCard(card) {
     const name = card.querySelector('strong').textContent.toLowerCase();
     const login = card.querySelector('span:nth-of-type(2)').textContent.toLowerCase();
     const location = extractLocation(card);
+    const languages = (card.querySelector('.languages')?.textContent || '').toLowerCase();
     const followers = parseInt(card.getAttribute('data-followers') || '0');
     const following = parseInt(card.getAttribute('data-following') || '0');
     const repos = parseInt(card.getAttribute('data-repos') || '0');
@@ -76,6 +77,7 @@ function parseUserCard(card) {
         name,
         login,
         location,
+        languages,
         followers,
         following,
         repos,
@@ -148,8 +150,31 @@ function setupEventListeners() {
             element.addEventListener(eventType, onFilterChange);
         }
     });
-}
 
+    const randomUserBtn = document.getElementById('randomUserBtn');
+    if (randomUserBtn) {
+        randomUserBtn.addEventListener('click', pickRandomUser);
+    }
+}
+function pickRandomUser() {
+    const usersToPickFrom = filteredUsers.length > 0 ? filteredUsers : allUsers;
+
+    if (usersToPickFrom.length === 0) {
+        alert('No users found to pick from!');
+        return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
+    const randomUser = usersToPickFrom[randomIndex];
+    randomUser.card.classList.add('visible');
+    randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    randomUser.card.classList.remove('highlight');
+    void randomUser.card.offsetWidth; // Force reflow to re-trigger CSS animation
+    randomUser.card.classList.add('highlight');
+    setTimeout(() => {
+        randomUser.card.classList.remove('highlight');
+    }, 2000);
+}
 /**
  * Handle any filter change event
  */
@@ -266,7 +291,8 @@ function matchesSearch(user, searchTerm) {
     if (!searchTerm) return true;
     return user.name.includes(searchTerm) ||
         user.login.includes(searchTerm) ||
-        user.location.includes(searchTerm);
+        user.location.includes(searchTerm) ||
+        user.languages.includes(searchTerm);
 }
 
 /**
