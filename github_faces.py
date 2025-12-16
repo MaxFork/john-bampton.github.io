@@ -6,8 +6,7 @@ from typing import List, Dict, Any
 from jinja2 import Environment, FileSystemLoader
 
 SITE_DIR = './docs'
-CACHE_DIR = './cache'
-CACHE_FILE = os.path.join(CACHE_DIR, 'users.json')
+CACHE_FILE = os.path.join(SITE_DIR, 'users.json')
 LAYOUTS_DIR = './layouts'
 
 jinja_env = Environment(loader=FileSystemLoader(LAYOUTS_DIR))
