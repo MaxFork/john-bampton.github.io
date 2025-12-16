@@ -548,13 +548,11 @@ function buildCardElement(user) {
     statsRow.appendChild(buildStat(true, `${user.html_url}?tab=repositories`, user.stars_display, 'Total Stars'));
     box.appendChild(statsRow);
 
-    // Last activity info
     const activity = document.createElement('div');
     activity.className = 'activity-row';
     activity.textContent = `Last commit: ${formatDateDisplay(user.last_repo_pushed_at)} • Last public commit: ${formatDateDisplay(user.last_public_commit_at)}`;
     box.appendChild(activity);
 
-    // Top languages
     if (user.top_languages.length) {
         const langRow = document.createElement('div');
         langRow.className = 'lang-row';
