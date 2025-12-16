@@ -1,7 +1,7 @@
 .idea
 
 # Cache and temp files
-cache/
+# cache/
 # *.cache
 # *.json
 
