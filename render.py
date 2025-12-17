@@ -69,7 +69,7 @@ def load_cache(cache_file: str = CACHE_FILE) -> List[Dict[str, Any]]:
     """Load user data from JSON cache file."""
     if not os.path.exists(cache_file):
         logger.error(f"Cache file not found: {cache_file}")
-        logger.error("Please run fetch_users.py first to fetch and cache user data.")
+        logger.error("Please run fetch.py first to fetch and cache user data.")
         return []
     
     try:
@@ -134,10 +134,10 @@ def run() -> None:
     users = load_cache()
     
     if not users:
-        logger.error("No users found in cache. Please run fetch_users.py first.")
+        logger.error("No users found in cache. Please run fetch.py first.")
         return
     
-    logger.info("Building HTML shell (header + footer + empty grid)...")
+    logger.info("Building HTML shell...")
     html_content = minify_html(build_html())
     
     try:
