@@ -77,7 +77,7 @@ function pickRandomUser() {
     }
 
     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        document.querySelectorAll('.card.highlight').forEach(c => c.classList.remove('highlight'));
+    document.querySelectorAll('.card.highlight').forEach(c => c.classList.remove('highlight'));
     
     setTimeout(() => {
         void card.offsetWidth;
@@ -216,10 +216,7 @@ function setupEventListeners() {
  */
 function getVisibleSortedUsers() {
     const sortBy = document.getElementById('sortBy').value;
-    
-    const sortedUsers = getSortedUsers(sortBy);
-    
-    return sortedUsers;
+    return getSortedUsers(sortBy);
 }
 
 /**
