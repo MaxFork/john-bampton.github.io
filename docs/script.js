@@ -69,20 +69,20 @@ function pickRandomUser() {
         toggleFiltersPanel();
     }
 
-    const randomIndex = Math.floor(Math.random() * visibleSortedUsers.length);
-    const randomUser = visibleSortedUsers[randomIndex];
-    const card = document.querySelector(`.card[data-login="${randomUser.login}"]`);
-    if (!card) {
+    const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
+    const randomUser = usersToPickFrom[randomIndex];
+
+    if (!randomUser.card) {
         return;
     }
 
-    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    document.querySelectorAll('.card.highlight').forEach(c => c.classList.remove('highlight'));
-    
+    randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
     setTimeout(() => {
-        void card.offsetWidth;
-        card.classList.add('highlight');
-        
+        randomUser.card.classList.remove('highlight');
+        void randomUser.card.offsetWidth;
+        randomUser.card.classList.add('highlight');
+
         setTimeout(() => {
             card.classList.remove('highlight');
         }, 3000);
