@@ -71,21 +71,15 @@ function pickRandomUser() {
 
     const randomIndex = Math.floor(Math.random() * visibleSortedUsers.length);
     const randomUser = visibleSortedUsers[randomIndex];
-    
-    // Find the card element in the DOM by login
     const card = document.querySelector(`.card[data-login="${randomUser.login}"]`);
     if (!card) {
         return;
     }
 
-    // Scroll to the user card
     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
-    // Remove existing highlights first
-    document.querySelectorAll('.card.highlight').forEach(c => c.classList.remove('highlight'));
+        document.querySelectorAll('.card.highlight').forEach(c => c.classList.remove('highlight'));
     
     setTimeout(() => {
-        card.classList.remove('highlight');
         void card.offsetWidth;
         card.classList.add('highlight');
         
