@@ -70,18 +70,18 @@ function pickRandomUser() {
 
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
-    
+
     if (!randomUser.card) {
         return;
     }
 
     randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
+
     setTimeout(() => {
         randomUser.card.classList.remove('highlight');
         void randomUser.card.offsetWidth;
         randomUser.card.classList.add('highlight');
-        
+
         setTimeout(() => {
             randomUser.card.classList.remove('highlight');
         }, 3000);
@@ -733,8 +733,7 @@ function showLoadingState() {
     const resultsInfo = document.getElementById('resultsInfo');
     const resultsInfoDesktop = document.getElementById('resultsInfoDesktop');
 
-    if (loadingState) loadingState.style.display = 'block';
-    if (loadingStateDesktop) loadingStateDesktop.style.display = 'block';
+    [loadingState, loadingStateDesktop].forEach(el => el && (el.style.display = 'flex'));
     if (resultsInfo) resultsInfo.style.display = 'none';
     if (resultsInfoDesktop) resultsInfoDesktop.style.display = 'none';
 }
