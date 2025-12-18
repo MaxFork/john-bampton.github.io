@@ -50,11 +50,12 @@ async function initializeApp() {
 }
 
 /**
- * Pick and highlight a random user from the filtered list
+ * Pick and highlight a random user from the filtered and sorted list
  */
 function pickRandomUser() {
-    const usersToPickFrom = filteredUsers.length > 0 ? filteredUsers : allUsers;
-    if (usersToPickFrom.length === 0) {
+    const visibleSortedUsers = getVisibleSortedUsers();
+    
+    if (visibleSortedUsers.length === 0) {
         const msg = document.createElement('div');
         msg.className = 'toast-notification';
         msg.textContent = '🎲 No developers found! Try adjusting your filters.';
@@ -68,22 +69,28 @@ function pickRandomUser() {
         toggleFiltersPanel();
     }
 
-    const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
-    const randomUser = usersToPickFrom[randomIndex];
+    const randomIndex = Math.floor(Math.random() * visibleSortedUsers.length);
+    const randomUser = visibleSortedUsers[randomIndex];
     
-    if (!randomUser.card) {
+    // Find the card element in the DOM by login
+    const card = document.querySelector(`.card[data-login="${randomUser.login}"]`);
+    if (!card) {
         return;
     }
 
-    randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Scroll to the user card
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Remove existing highlights first
+    document.querySelectorAll('.card.highlight').forEach(c => c.classList.remove('highlight'));
     
     setTimeout(() => {
-        randomUser.card.classList.remove('highlight');
-        void randomUser.card.offsetWidth;
-        randomUser.card.classList.add('highlight');
+        card.classList.remove('highlight');
+        void card.offsetWidth;
+        card.classList.add('highlight');
         
         setTimeout(() => {
-            randomUser.card.classList.remove('highlight');
+            card.classList.remove('highlight');
         }, 3000);
     }, 500);
 }
@@ -206,6 +213,19 @@ function setupEventListeners() {
     if (randomBtn) {
         randomBtn.addEventListener('click', pickRandomUser);
     }
+}
+
+/**
+ * Get currently visible sorted users matching the displayed order
+ * Uses the same filtering and sorting logic as the display
+ * @returns {Array} Array of visible user objects in displayed order
+ */
+function getVisibleSortedUsers() {
+    const sortBy = document.getElementById('sortBy').value;
+    
+    const sortedUsers = getSortedUsers(sortBy);
+    
+    return sortedUsers;
 }
 
 /**
