@@ -53,7 +53,7 @@ async function initializeApp() {
  * Pick and highlight a random user from the filtered and sorted list
  */
 function pickRandomUser() {
-    const visibleSortedUsers = getVisibleSortedUsers();
+    const usersToPickFrom = getVisibleSortedUsers();
     
     if (visibleSortedUsers.length === 0) {
         const msg = document.createElement('div');
