@@ -84,7 +84,7 @@ function pickRandomUser() {
         randomUser.card.classList.add('highlight');
 
         setTimeout(() => {
-            card.classList.remove('highlight');
+            randomUser.card.classList.remove('highlight');
         }, 3000);
     }, 500);
 }
