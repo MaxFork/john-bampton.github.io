@@ -630,7 +630,7 @@ function buildCardElement(user) {
     card.appendChild(link);
     card.appendChild(box);
 
-    try { user.card = card; } catch (e) { /* defensive: ignore if user is immutable */ }
+    user.card = card;
     return card;
 }
 
