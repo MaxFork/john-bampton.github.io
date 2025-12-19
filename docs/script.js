@@ -74,18 +74,18 @@ function pickRandomUser() {
 
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
-    
+
     if (!randomUser.card) {
         return;
     }
 
     randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
+
     setTimeout(() => {
         randomUser.card.classList.remove('highlight');
         void randomUser.card.offsetWidth;
         randomUser.card.classList.add('highlight');
-        
+
         setTimeout(() => {
             randomUser.card.classList.remove('highlight');
         }, 3000);
@@ -139,6 +139,7 @@ function prepareUserFromJson(user) {
         followers: getNum(user.followers),
         following: getNum(user.following),
         repos: getNum(user.public_repos),
+        gists: getNum(user.public_gists),
         forks: 0,
         sponsors: getNum(user.sponsors_count),
         sponsoring: getNum(user.sponsoring_count),
@@ -492,6 +493,8 @@ function getSortedUsers(sortBy) {
         'following-asc': (a, b) => a.following - b.following,
         'repos-desc': (a, b) => b.repos - a.repos,
         'repos-asc': (a, b) => a.repos - b.repos,
+        'gists-desc': (a, b) => b.gists - a.gists,
+        'gists-asc': (a, b) => a.gists - b.gists,
         'forks-desc': (a, b) => b.forks - a.forks,
         'forks-asc': (a, b) => a.forks - b.forks,
         'sponsors-desc': (a, b) => b.sponsors - a.sponsors,
