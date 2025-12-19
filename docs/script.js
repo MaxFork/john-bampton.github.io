@@ -71,7 +71,7 @@ function pickRandomUser() {
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
 
-    if (!randomUser.card) {
+    if (!randomUser.card || !randomUser.card.isConnected) {
         // Attempt to find the card in the DOM by data-login as a fallback
         const fallbackCard = document.querySelector(`[data-login="${randomUser.login}"]`);
         if (fallbackCard) {
