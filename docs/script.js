@@ -72,7 +72,18 @@ function pickRandomUser() {
     const randomUser = usersToPickFrom[randomIndex];
 
     if (!randomUser.card) {
-        return;
+        // Attempt to find the card in the DOM by data-login as a fallback
+        const fallbackCard = document.querySelector(`[data-login="${randomUser.login}"]`);
+        if (fallbackCard) {
+            randomUser.card = fallbackCard;
+        } else {
+            const msg = document.createElement('div');
+            msg.className = 'toast-notification';
+            msg.textContent = '🎲 Could not locate the selected developer card. Try again.';
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
+            return;
+        }
     }
 
     randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -618,6 +629,8 @@ function buildCardElement(user) {
 
     card.appendChild(link);
     card.appendChild(box);
+
+    try { user.card = card; } catch (e) { /* defensive: ignore if user is immutable */ }
     return card;
 }
 
