@@ -55,7 +55,7 @@ async function initializeApp() {
 function pickRandomUser() {
     const usersToPickFrom = getVisibleSortedUsers();
     
-    if (visibleSortedUsers.length === 0) {
+    if (usersToPickFrom.length === 0) {
         const msg = document.createElement('div');
         msg.className = 'toast-notification';
         msg.textContent = '🎲 No developers found! Try adjusting your filters.';
