@@ -740,8 +740,7 @@ function showLoadingState() {
     const resultsInfo = document.getElementById('resultsInfo');
     const resultsInfoDesktop = document.getElementById('resultsInfoDesktop');
 
-    if (loadingState) loadingState.style.display = 'flex';
-    if (loadingStateDesktop) loadingStateDesktop.style.display = 'flex';
+    [loadingState, loadingStateDesktop].forEach(el => el && (el.style.display = 'flex'));
     if (resultsInfo) resultsInfo.style.display = 'none';
     if (resultsInfoDesktop) resultsInfoDesktop.style.display = 'none';
 }
