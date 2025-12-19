@@ -44,9 +44,13 @@ async function initializeApp() {
     showLoadingState();
     setupEventListeners();
     await fetchAndPrepareUsers();
-    applyFilters();
-    updateVisibilityAndSort();
-    hideLoadingState();
+
+    // Do these if data is loaded
+    if (isDataLoaded) {
+        applyFilters();
+        updateVisibilityAndSort();
+        hideLoadingState();
+    }
 }
 
 /**
@@ -102,16 +106,19 @@ async function fetchAndPrepareUsers() {
         document.getElementById('totalCountDesktop').textContent = total.toLocaleString();
     } catch (err) {
         console.error(err);
-        const noResults = document.getElementById('noResults');
-        const noResultsDesktop = document.getElementById('noResultsDesktop');
-        if (noResults) {
-            noResults.textContent = 'Unable to load users. Please try again later.';
-            noResults.style.display = 'block';
-        }
-        if (noResultsDesktop) {
-            noResultsDesktop.textContent = 'Unable to load users. Please try again later.';
-            noResultsDesktop.style.display = 'block';
-        }
+        const loadingStates = document.querySelectorAll('.loading-state');
+        loadingStates.forEach(state => {
+            const spinner = state.querySelector('.loading-spinner');
+            const errorMessage = state.querySelector('.error-message');
+            const loadingMessage = state.querySelector('p:not(.error-message)');
+
+            if (spinner) spinner.style.display = 'none';
+            if (loadingMessage) loadingMessage.style.display = 'none';
+            if (errorMessage) {
+                errorMessage.textContent = 'Unable to load users. Please try again later.';
+                errorMessage.style.display = 'block';
+            }
+        });
     }
 }
 
