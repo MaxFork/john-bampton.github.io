@@ -54,7 +54,6 @@ async function initializeApp() {
  */
 function pickRandomUser() {
     const usersToPickFrom = getVisibleSortedUsers();
-    
     if (usersToPickFrom.length === 0) {
         const msg = document.createElement('div');
         msg.className = 'toast-notification';
