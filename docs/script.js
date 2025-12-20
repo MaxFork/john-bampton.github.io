@@ -251,6 +251,75 @@ function applyFilters() {
     });
 }
 
+// Export JSON
+function exportFilteredJSON() {
+
+    if (!filteredUsers.length) {
+        alert('No users to export');
+        return;
+    }
+
+    const userData = filteredUsers.map(user => user.raw);
+
+    const jsonString = JSON.stringify(userData, null, 2);
+    const blob = new Blob([jsonString], {type: 'application/json'});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'github-faces.json';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+}
+
+// Export CSV
+function exportFilteredCSV() {
+
+    if (!filteredUsers.length) {
+        alert('No users to export');
+        return;
+    }
+
+    const rows = filteredUsers.map(user => user.raw);
+    const headers = Object.keys(rows[0]);
+
+    const escapeCSV = value => {
+        if (value == null) return '';
+        // if object or array, stringify it
+        const str = 
+            typeof value === 'object'
+                ? JSON.stringify(value).replace(/"/g, '""')
+                : String(value).replace(/"/g, '""');
+
+        return `"${str}"`;
+    }
+
+    
+    const csv = [
+        headers.join(','), 
+        ...rows.map(row => headers.map(h => escapeCSV(row[h])).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'github-faces.csv';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+}
+
 /**
  * Get all active filter values from DOM
  * @returns {Object} Active filter values
