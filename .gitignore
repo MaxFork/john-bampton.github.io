@@ -1,12 +1,10 @@
 .idea
 
 # Cache and temp files
-temp/
-cache/
-*.cache
-*.json
+docs/index.html
 
 # Python
+venv/
 __pycache__/
 *.py[cod]
 *$py.class

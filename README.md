@@ -64,13 +64,13 @@ You can modify these directly in `github_faces.py`.
 
 ## Screenshots
 
-![Sample Faces](docs/images/preview.jpg)
+![Sample Faces](docs/images/other/screenshot-1280.png)
 
 ---
 
 ## Powered by
 
-[![Python Powered](docs/images/other/python-powered.png)](https://www.python.org/)
+[![Python Powered](docs/images/other/python-logo.png)](https://www.python.org/)
 [![PyCharm Powered](docs/images/other/pycharm-logo.png)](https://www.jetbrains.com/pycharm/)
 
 ---
@@ -90,6 +90,11 @@ We welcome contributions! Feel free to:
 
 Inspired by the GitHub community and the creativity of open-source developers.
 Special thanks to all contributors and avatar owners included in this project.
+
+The idea for this showcase site originally came from the movie [300](https://en.wikipedia.org/wiki/300_(film)).
+The plot revolves around King Leonidas (Gerard Butler), who leads 300 Spartans into
+battle against the Persian "God-King" Xerxes (Rodrigo Santoro). Here our showcase is
+currently led by [Linus Torvalds](https://en.wikipedia.org/wiki/Linus_Torvalds).
 
 ---
 
