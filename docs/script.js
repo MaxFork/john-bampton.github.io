@@ -66,7 +66,7 @@ function showToast(message) {
 }
 
 /**
- * Pick and highlight a random user from the filtered and sorted list
+ * Pick and navigate to a random user from the filtered and sorted list
  */
 function pickRandomUser() {
     const usersToPickFrom = getVisibleSortedUsers();
@@ -83,28 +83,12 @@ function pickRandomUser() {
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
 
-    if (!randomUser.card || !randomUser.card.isConnected) {
-        // Attempt to find the card in the DOM by data-login as a fallback
-        const fallbackCard = document.querySelector(`[data-login="${randomUser.login}"]`);
-        if (fallbackCard) {
-            randomUser.card = fallbackCard;
-        } else {
-            showToast('🎲 Could not locate the selected developer card. Try again.');
-            return;
-        }
+    // Navigate to the random user's GitHub profile
+    if (randomUser.html_url) {
+        window.open(randomUser.html_url, '_blank', 'noopener,noreferrer');
+    } else {
+        showToast('🎲 Could not find the selected developer profile. Try again.');
     }
-
-    randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    setTimeout(() => {
-        randomUser.card.classList.remove('highlight');
-        void randomUser.card.offsetWidth;
-        randomUser.card.classList.add('highlight');
-
-        setTimeout(() => {
-            randomUser.card.classList.remove('highlight');
-        }, 3000);
-    }, 500);
 }
 
 async function fetchAndPrepareUsers() {
