@@ -66,13 +66,20 @@ function showToast(message) {
 }
 
 /**
- * Pick and navigate to a random user from the filtered and sorted list
+ * Pick and highlight a random user from the filtered and sorted list
  */
-function pickRandomUser() {
+function pickRandomUser(event) {
+    // Prevent any default behavior or navigation
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+
     const usersToPickFrom = getVisibleSortedUsers();
     if (usersToPickFrom.length === 0) {
         showToast('🎲 No developers found! Try adjusting your filters.');
-        return;
+        return false;
     }
 
     const filtersAside = document.getElementById('filtersAside');
@@ -83,12 +90,59 @@ function pickRandomUser() {
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
 
-    // Navigate to the random user's GitHub profile
-    if (randomUser.html_url) {
-        window.open(randomUser.html_url, '_blank', 'noopener,noreferrer');
-    } else {
-        showToast('🎲 Could not find the selected developer profile. Try again.');
+    // Find the card element for the random user
+    if (!randomUser.card || !randomUser.card.isConnected) {
+        // Attempt to find the card in the DOM by data-login as a fallback
+        const fallbackCard = document.querySelector(`[data-login="${randomUser.login}"]`);
+        if (fallbackCard) {
+            randomUser.card = fallbackCard;
+        } else {
+            showToast('🎲 Could not locate the selected developer card. Try again.');
+            return false;
+        }
     }
+
+    // Find and disable ALL links in the card to prevent any navigation
+    const cardLinks = randomUser.card.querySelectorAll('a');
+    const originalPointerEvents = [];
+    const originalHrefs = [];
+
+    cardLinks.forEach((link, index) => {
+        originalPointerEvents[index] = link.style.pointerEvents;
+        originalHrefs[index] = link.href;
+        link.style.pointerEvents = 'none';
+        link.href = 'javascript:void(0)';
+        // Also prevent click events
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }, { once: true, capture: true });
+    });
+
+    // Scroll near the card (with a small offset to avoid landing exactly on it)
+    const cardRect = randomUser.card.getBoundingClientRect();
+    const scrollOffset = cardRect.top + window.scrollY - 100; // 100px offset from top
+    window.scrollTo({ top: Math.max(0, scrollOffset), behavior: 'smooth' });
+
+    // Highlight the card
+    randomUser.card.classList.remove('highlight');
+    void randomUser.card.offsetWidth; // Force reflow
+    randomUser.card.classList.add('highlight');
+
+    // Re-enable the links and remove highlight after 3 seconds
+    setTimeout(() => {
+        cardLinks.forEach((link, index) => {
+            link.style.pointerEvents = originalPointerEvents[index] || '';
+            if (originalHrefs[index]) {
+                link.href = originalHrefs[index];
+            }
+        });
+        randomUser.card.classList.remove('highlight');
+    }, 3000);
+
+    return false;
 }
 
 async function fetchAndPrepareUsers() {
@@ -211,7 +265,15 @@ function setupEventListeners() {
 
     const randomBtn = document.getElementById('randomUserBtn');
     if (randomBtn) {
-        randomBtn.addEventListener('click', pickRandomUser);
+        // Change button type to prevent form submission
+        randomBtn.type = 'button';
+        randomBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            pickRandomUser(e);
+            return false;
+        }, { capture: true });
     }
 }
 
