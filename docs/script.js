@@ -44,22 +44,34 @@ async function initializeApp() {
     showLoadingState();
     setupEventListeners();
     await fetchAndPrepareUsers();
-    applyFilters();
-    updateVisibilityAndSort();
-    hideLoadingState();
+
+    // Do these if data is loaded
+    if (isDataLoaded) {
+        applyFilters();
+        updateVisibilityAndSort();
+        hideLoadingState();
+    }
 }
 
 /**
- * Pick and highlight a random user from the filtered list
+ * Show a toast notification message
+ * @param {string} message - The message to display
+ */
+function showToast(message) {
+    const msg = document.createElement('div');
+    msg.className = 'toast-notification';
+    msg.textContent = message;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+}
+
+/**
+ * Pick and highlight a random user from the filtered and sorted list
  */
 function pickRandomUser() {
-    const usersToPickFrom = filteredUsers.length > 0 ? filteredUsers : allUsers;
+    const usersToPickFrom = getVisibleSortedUsers();
     if (usersToPickFrom.length === 0) {
-        const msg = document.createElement('div');
-        msg.className = 'toast-notification';
-        msg.textContent = '🎲 No developers found! Try adjusting your filters.';
-        document.body.appendChild(msg);
-        setTimeout(() => msg.remove(), 3000);
+        showToast('🎲 No developers found! Try adjusting your filters.');
         return;
     }
 
@@ -71,8 +83,15 @@ function pickRandomUser() {
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
 
-    if (!randomUser.card) {
-        return;
+    if (!randomUser.card || !randomUser.card.isConnected) {
+        // Attempt to find the card in the DOM by data-login as a fallback
+        const fallbackCard = document.querySelector(`[data-login="${randomUser.login}"]`);
+        if (fallbackCard) {
+            randomUser.card = fallbackCard;
+        } else {
+            showToast('🎲 Could not locate the selected developer card. Try again.');
+            return;
+        }
     }
 
     randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -102,16 +121,19 @@ async function fetchAndPrepareUsers() {
         document.getElementById('totalCountDesktop').textContent = total.toLocaleString();
     } catch (err) {
         console.error(err);
-        const noResults = document.getElementById('noResults');
-        const noResultsDesktop = document.getElementById('noResultsDesktop');
-        if (noResults) {
-            noResults.textContent = 'Unable to load users. Please try again later.';
-            noResults.style.display = 'block';
-        }
-        if (noResultsDesktop) {
-            noResultsDesktop.textContent = 'Unable to load users. Please try again later.';
-            noResultsDesktop.style.display = 'block';
-        }
+        const loadingStates = document.querySelectorAll('.loading-state');
+        loadingStates.forEach(state => {
+            const spinner = state.querySelector('.loading-spinner');
+            const errorMessage = state.querySelector('.error-message');
+            const loadingMessage = state.querySelector('p:not(.error-message)');
+
+            if (spinner) spinner.style.display = 'none';
+            if (loadingMessage) loadingMessage.style.display = 'none';
+            if (errorMessage) {
+                errorMessage.textContent = 'Unable to load users. Please try again later.';
+                errorMessage.style.display = 'block';
+            }
+        });
     }
 }
 
@@ -210,6 +232,16 @@ function setupEventListeners() {
 }
 
 /**
+ * Get currently visible sorted users matching the displayed order
+ * Uses the same filtering and sorting logic as the display
+ * @returns {Array} Array of visible user objects in displayed order
+ */
+function getVisibleSortedUsers() {
+    const sortBy = document.getElementById('sortBy').value;
+    return getSortedUsers(sortBy);
+}
+
+/**
  * Handle any filter change event
  */
 function onFilterChange() {
@@ -242,6 +274,74 @@ function applyFilters() {
     filteredUsers = allUsers.filter(user => {
         return matchesAllFilters(user, filters, dateRanges);
     });
+}
+
+// Export JSON
+function exportFilteredJSON() {
+
+    if (!filteredUsers.length) {
+        alert('No users to export');
+        return;
+    }
+
+    const userData = filteredUsers.map(user => user.raw);
+
+    const jsonString = JSON.stringify(userData, null, 2);
+    const blob = new Blob([jsonString], {type: 'application/json'});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'github-faces.json';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+}
+
+// Export CSV
+function exportFilteredCSV() {
+
+    if (!filteredUsers.length) {
+        alert('No users to export');
+        return;
+    }
+
+    const rows = filteredUsers.map(user => user.raw);
+    const headers = Object.keys(rows[0]);
+
+    const escapeCSV = value => {
+        if (value == null) return '';
+        // if object or array, stringify it
+        const str =
+            typeof value === 'object'
+                ? JSON.stringify(value).replace(/"/g, '""')
+                : String(value).replace(/"/g, '""');
+
+        return `"${str}"`;
+    }
+
+    const csv = [
+        headers.join(','),
+        ...rows.map(row => headers.map(h => escapeCSV(row[h])).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'github-faces.csv';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
 }
 
 /**
@@ -608,6 +708,8 @@ function buildCardElement(user) {
 
     card.appendChild(link);
     card.appendChild(box);
+
+    user.card = card;
     return card;
 }
 

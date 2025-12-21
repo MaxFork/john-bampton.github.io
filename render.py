@@ -35,7 +35,7 @@ def ensure_dir(path: str) -> None:
     """Create directory if it doesn't exist."""
     if not os.path.exists(path):
         os.makedirs(path)
-        logger.info(f"Created directory: {path}")
+        logger.info("Created directory: %s", path)
 
 
 def format_number(num: Any) -> str:
@@ -76,17 +76,17 @@ def prepare_users(users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def load_cache(cache_file: str = CACHE_FILE) -> List[Dict[str, Any]]:
     """Load user data from JSON cache file."""
     if not os.path.exists(cache_file):
-        logger.error(f"Cache file not found: {cache_file}")
+        logger.error("Cache file not found: %s", cache_file)
         logger.error("Please run fetch_users.py first to fetch and cache user data.")
         return []
 
     try:
         with open(cache_file, "r", encoding="utf-8") as f:
             users = json.load(f)
-        logger.info(f"Loaded {len(users)} users from cache")
+        logger.info("Loaded %d users from cache", len(users))
         return users
     except Exception as e:
-        logger.error(f"Failed to load cache: {e}")
+        logger.error("Failed to load cache: %s", e)
         return []
 
 
@@ -158,10 +158,11 @@ def run() -> None:
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(html_content)
         logger.info(
-            f"HTML shell saved successfully. Total users available: {len(users)}"
+            "HTML shell saved successfully. Total users available: %d",
+            len(users),
         )
     except Exception as e:
-        logger.error(f"Failed to save HTML page: {e}")
+        logger.error("Failed to save HTML page: %s", e)
 
 
 if __name__ == "__main__":

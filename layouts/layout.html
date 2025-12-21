@@ -265,9 +265,15 @@
                 <button class="btn-reset" onclick="resetFilters()">Reset</button>
             </div>
 
-            <div class="results-info" id="loadingState" style="display: none;">
+            <div class="filters-buttons export-buttons">
+                <button class="btn-apply" onclick="exportFilteredJSON()">Export JSON</button>
+                <button class="btn-apply" onclick="exportFilteredCSV()">Export CSV</button>
+            </div>
+
+            <div class="results-info loading-state" id="loadingState" style="display: none;">
                 <div class="loading-spinner"></div>
-                <div>Loading developers...</div>
+                <p>Loading developers...</p>
+                <p class="error-message" style="display: none;"></p>
             </div>
 
             <div class="results-info" id="resultsInfo">
@@ -282,9 +288,10 @@
     </aside>
 
     <main class="main-content">
-        <div class="results-info-desktop" id="loadingStateDesktop" style="display: none;">
+        <div class="results-info-desktop loading-state" id="loadingStateDesktop" style="display: none;">
             <div class="loading-spinner"></div>
-            <div>Loading developers...</div>
+            <p>Loading developers...</p>
+            <p class="error-message" style="display: none;"></p>
         </div>
 
         <div class="results-info-desktop" id="resultsInfoDesktop">
