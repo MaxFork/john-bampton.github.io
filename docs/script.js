@@ -44,9 +44,13 @@ async function initializeApp() {
     showLoadingState();
     setupEventListeners();
     await fetchAndPrepareUsers();
-    applyFilters();
-    updateVisibilityAndSort();
-    hideLoadingState();
+
+    // Do these if data is loaded
+    if (isDataLoaded) {
+        applyFilters();
+        updateVisibilityAndSort();
+        hideLoadingState();
+    }
 }
 
 /**
@@ -113,16 +117,19 @@ async function fetchAndPrepareUsers() {
         document.getElementById('totalCountDesktop').textContent = total.toLocaleString();
     } catch (err) {
         console.error(err);
-        const noResults = document.getElementById('noResults');
-        const noResultsDesktop = document.getElementById('noResultsDesktop');
-        if (noResults) {
-            noResults.textContent = 'Unable to load users. Please try again later.';
-            noResults.style.display = 'block';
-        }
-        if (noResultsDesktop) {
-            noResultsDesktop.textContent = 'Unable to load users. Please try again later.';
-            noResultsDesktop.style.display = 'block';
-        }
+        const loadingStates = document.querySelectorAll('.loading-state');
+        loadingStates.forEach(state => {
+            const spinner = state.querySelector('.loading-spinner');
+            const errorMessage = state.querySelector('.error-message');
+            const loadingMessage = state.querySelector('p:not(.error-message)');
+
+            if (spinner) spinner.style.display = 'none';
+            if (loadingMessage) loadingMessage.style.display = 'none';
+            if (errorMessage) {
+                errorMessage.textContent = 'Unable to load users. Please try again later.';
+                errorMessage.style.display = 'block';
+            }
+        });
     }
 }
 
@@ -263,6 +270,75 @@ function applyFilters() {
     filteredUsers = allUsers.filter(user => {
         return matchesAllFilters(user, filters, dateRanges);
     });
+}
+
+// Export JSON
+function exportFilteredJSON() {
+
+    if (!filteredUsers.length) {
+        alert('No users to export');
+        return;
+    }
+
+    const userData = filteredUsers.map(user => user.raw);
+
+    const jsonString = JSON.stringify(userData, null, 2);
+    const blob = new Blob([jsonString], {type: 'application/json'});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'github-faces.json';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+}
+
+// Export CSV
+function exportFilteredCSV() {
+
+    if (!filteredUsers.length) {
+        alert('No users to export');
+        return;
+    }
+
+    const rows = filteredUsers.map(user => user.raw);
+    const headers = Object.keys(rows[0]);
+
+    const escapeCSV = value => {
+        if (value == null) return '';
+        // if object or array, stringify it
+        const str = 
+            typeof value === 'object'
+                ? JSON.stringify(value).replace(/"/g, '""')
+                : String(value).replace(/"/g, '""');
+
+        return `"${str}"`;
+    }
+
+    
+    const csv = [
+        headers.join(','), 
+        ...rows.map(row => headers.map(h => escapeCSV(row[h])).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'github-faces.csv';
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
 }
 
 /**
