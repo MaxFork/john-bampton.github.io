@@ -54,16 +54,24 @@ async function initializeApp() {
 }
 
 /**
+ * Show a toast notification message
+ * @param {string} message - The message to display
+ */
+function showToast(message) {
+    const msg = document.createElement('div');
+    msg.className = 'toast-notification';
+    msg.textContent = message;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+}
+
+/**
  * Pick and highlight a random user from the filtered and sorted list
  */
 function pickRandomUser() {
     const usersToPickFrom = getVisibleSortedUsers();
     if (usersToPickFrom.length === 0) {
-        const msg = document.createElement('div');
-        msg.className = 'toast-notification';
-        msg.textContent = '🎲 No developers found! Try adjusting your filters.';
-        document.body.appendChild(msg);
-        setTimeout(() => msg.remove(), 3000);
+        showToast('🎲 No developers found! Try adjusting your filters.');
         return;
     }
 
@@ -81,11 +89,7 @@ function pickRandomUser() {
         if (fallbackCard) {
             randomUser.card = fallbackCard;
         } else {
-            const msg = document.createElement('div');
-            msg.className = 'toast-notification';
-            msg.textContent = message;
-            document.body.appendChild(msg);
-            setTimeout(() => msg.remove(), 3000);
+            showToast('🎲 Could not locate the selected developer card. Try again.');
             return;
         }
     }
