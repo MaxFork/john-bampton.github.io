@@ -54,16 +54,24 @@ async function initializeApp() {
 }
 
 /**
- * Pick and highlight a random user from the filtered list
+ * Show a toast notification message
+ * @param {string} message - The message to display
+ */
+function showToast(message) {
+    const msg = document.createElement('div');
+    msg.className = 'toast-notification';
+    msg.textContent = message;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+}
+
+/**
+ * Pick and highlight a random user from the filtered and sorted list
  */
 function pickRandomUser() {
-    const usersToPickFrom = filteredUsers.length > 0 ? filteredUsers : allUsers;
+    const usersToPickFrom = getVisibleSortedUsers();
     if (usersToPickFrom.length === 0) {
-        const msg = document.createElement('div');
-        msg.className = 'toast-notification';
-        msg.textContent = '🎲 No developers found! Try adjusting your filters.';
-        document.body.appendChild(msg);
-        setTimeout(() => msg.remove(), 3000);
+        showToast('🎲 No developers found! Try adjusting your filters.');
         return;
     }
 
@@ -75,8 +83,15 @@ function pickRandomUser() {
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
 
-    if (!randomUser.card) {
-        return;
+    if (!randomUser.card || !randomUser.card.isConnected) {
+        // Attempt to find the card in the DOM by data-login as a fallback
+        const fallbackCard = document.querySelector(`[data-login="${randomUser.login}"]`);
+        if (fallbackCard) {
+            randomUser.card = fallbackCard;
+        } else {
+            showToast('🎲 Could not locate the selected developer card. Try again.');
+            return;
+        }
     }
 
     randomUser.card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -217,6 +232,16 @@ function setupEventListeners() {
 }
 
 /**
+ * Get currently visible sorted users matching the displayed order
+ * Uses the same filtering and sorting logic as the display
+ * @returns {Array} Array of visible user objects in displayed order
+ */
+function getVisibleSortedUsers() {
+    const sortBy = document.getElementById('sortBy').value;
+    return getSortedUsers(sortBy);
+}
+
+/**
  * Handle any filter change event
  */
 function onFilterChange() {
@@ -291,7 +316,7 @@ function exportFilteredCSV() {
     const escapeCSV = value => {
         if (value == null) return '';
         // if object or array, stringify it
-        const str = 
+        const str =
             typeof value === 'object'
                 ? JSON.stringify(value).replace(/"/g, '""')
                 : String(value).replace(/"/g, '""');
@@ -299,9 +324,8 @@ function exportFilteredCSV() {
         return `"${str}"`;
     }
 
-    
     const csv = [
-        headers.join(','), 
+        headers.join(','),
         ...rows.map(row => headers.map(h => escapeCSV(row[h])).join(','))
     ].join('\n');
 
@@ -684,6 +708,8 @@ function buildCardElement(user) {
 
     card.appendChild(link);
     card.appendChild(box);
+
+    user.card = card;
     return card;
 }
 
