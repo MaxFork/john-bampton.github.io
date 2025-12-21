@@ -83,7 +83,7 @@ function pickRandomUser() {
         } else {
             const msg = document.createElement('div');
             msg.className = 'toast-notification';
-            msg.textContent = '🎲 Could not locate the selected developer card. Try again.';
+            msg.textContent = message;
             document.body.appendChild(msg);
             setTimeout(() => msg.remove(), 3000);
             return;
@@ -312,7 +312,7 @@ function exportFilteredCSV() {
     const escapeCSV = value => {
         if (value == null) return '';
         // if object or array, stringify it
-        const str = 
+        const str =
             typeof value === 'object'
                 ? JSON.stringify(value).replace(/"/g, '""')
                 : String(value).replace(/"/g, '""');
@@ -320,9 +320,8 @@ function exportFilteredCSV() {
         return `"${str}"`;
     }
 
-    
     const csv = [
-        headers.join(','), 
+        headers.join(','),
         ...rows.map(row => headers.map(h => escapeCSV(row[h])).join(','))
     ].join('\n');
 
