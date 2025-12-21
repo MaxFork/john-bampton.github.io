@@ -3,8 +3,9 @@ import logging
 import os
 import time
 from calendar import timegm
+from typing import Any, Dict, List, Tuple
 from urllib.request import urlretrieve
-from typing import List, Dict, Any, Tuple
+
 import requests
 
 CACHE_DIR = "./docs"
