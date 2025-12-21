@@ -113,13 +113,6 @@ function pickRandomUser(event) {
         originalHrefs[index] = link.href;
         link.style.pointerEvents = 'none';
         link.href = 'javascript:void(0)';
-        // Also prevent click events
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-        }, { once: true, capture: true });
     });
 
     // Scroll near the card (with a small offset to avoid landing exactly on it)
@@ -276,13 +269,7 @@ function setupEventListeners() {
     if (randomBtn) {
         // Change button type to prevent form submission
         randomBtn.type = 'button';
-        randomBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            pickRandomUser(e);
-            return false;
-        }, { capture: true });
+        randomBtn.addEventListener('click', pickRandomUser);
     }
   });
 
