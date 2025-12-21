@@ -86,7 +86,6 @@ function pickRandomUser(event) {
     if (filtersAside && filtersAside.classList.contains('open')) {
         toggleFiltersPanel();
     }
-  }
 
     const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
     const randomUser = usersToPickFrom[randomIndex];
@@ -106,13 +105,10 @@ function pickRandomUser(event) {
     // Find and disable ALL links in the card to prevent any navigation
     const cardLinks = randomUser.card.querySelectorAll('a');
     const originalPointerEvents = [];
-    const originalHrefs = [];
 
     cardLinks.forEach((link, index) => {
         originalPointerEvents[index] = link.style.pointerEvents;
-        originalHrefs[index] = link.href;
         link.style.pointerEvents = 'none';
-        link.href = 'javascript:void(0)';
     });
 
     // Scroll near the card (with a small offset to avoid landing exactly on it)
@@ -129,14 +125,9 @@ function pickRandomUser(event) {
     setTimeout(() => {
         cardLinks.forEach((link, index) => {
             link.style.pointerEvents = originalPointerEvents[index] || '';
-            if (originalHrefs[index]) {
-                link.href = originalHrefs[index];
-            }
         });
         randomUser.card.classList.remove('highlight');
     }, 3000);
-
-    return false;
 }
 
 async function fetchAndPrepareUsers() {
@@ -271,12 +262,6 @@ function setupEventListeners() {
         randomBtn.type = 'button';
         randomBtn.addEventListener('click', pickRandomUser);
     }
-  });
-
-  const randomBtn = document.getElementById("randomUserBtn");
-  if (randomBtn) {
-    randomBtn.addEventListener("click", pickRandomUser);
-  }
 }
 
 /**
