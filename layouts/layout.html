@@ -71,6 +71,8 @@
                         <option value="following-asc">Least Following</option>
                         <option value="repos-desc">Most Repos</option>
                         <option value="repos-asc">Least Repos</option>
+                        <option value="gists-desc">Most Gists</option>
+                        <option value="gists-asc">Least Gists</option>
                         <option value="forks-desc">Most Forks</option>
                         <option value="forks-asc">Least Forks</option>
                         <option value="sponsors-desc">Most Public Sponsors</option>
@@ -263,9 +265,15 @@
                 <button class="btn-reset" onclick="resetFilters()">Reset</button>
             </div>
 
-            <div class="results-info" id="loadingState" style="display: none;">
+            <div class="filters-buttons export-buttons">
+                <button class="btn-apply" onclick="exportFilteredJSON()">Export JSON</button>
+                <button class="btn-apply" onclick="exportFilteredCSV()">Export CSV</button>
+            </div>
+
+            <div class="results-info loading-state" id="loadingState" style="display: none;">
                 <div class="loading-spinner"></div>
-                <div>Loading developers...</div>
+                <p>Loading developers...</p>
+                <p class="error-message" style="display: none;"></p>
             </div>
 
             <div class="results-info" id="resultsInfo">
@@ -280,9 +288,10 @@
     </aside>
 
     <main class="main-content">
-        <div class="results-info-desktop" id="loadingStateDesktop" style="display: none;">
+        <div class="results-info-desktop loading-state" id="loadingStateDesktop" style="display: none;">
             <div class="loading-spinner"></div>
-            <div>Loading developers...</div>
+            <p>Loading developers...</p>
+            <p class="error-message" style="display: none;"></p>
         </div>
 
         <div class="results-info-desktop" id="resultsInfoDesktop">

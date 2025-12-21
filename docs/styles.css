@@ -248,6 +248,24 @@ h1 {
     color: #667eea;
 }
 
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.filters-buttons,
+.export-buttons {
+    width: 100%;
+}
+
+.filters-buttons .btn-apply,
+.filters-buttons .btn-reset,
+.export-buttons .btn-apply {
+    flex: 1;
+}
+
+
 .btn-random {
     width: 100%;
     padding: 12px;
@@ -597,6 +615,15 @@ footer {
 
     .btn-apply {
         order: -1;
+    }
+
+    .export-buttons {
+        width: 100%;
+    }
+
+    .export-buttons .btn-apply {
+        flex: 1;
+        padding: 12px;
     }
 
     .main-content {
