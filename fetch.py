@@ -65,9 +65,10 @@ def download_file_http(url: str, dest_path: str, timeout: int = 10) -> None:
 
     response.raise_for_status()
 
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    safe_dest_path = safe_path(dest_path)
+    os.makedirs(os.path.dirname(safe_dest_path), exist_ok=True)
 
-    with open(dest_path, "wb") as f:
+    with open(safe_dest_path, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
             if chunk:
                 f.write(chunk)
