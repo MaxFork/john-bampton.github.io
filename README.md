@@ -107,3 +107,18 @@ This project is licensed under the MIT License.
 ---
 
 > "Explore the faces behind GitHub. Discover the people shaping open-source."
+
+# RSS Feed
+
+This site now generates an RSS feed at docs/feed.xml. The feed contains a single item for the main page. You can subscribe to this feed in any RSS reader.
+
+## How it works
+- The feed is generated automatically when you run render.py.
+- The feed follows RSS 2.0 format and includes the site title, link, description, and publication date.
+
+## Example feed URL
+https://john-bampton.github.io/feed.xml
+
+## Future improvements
+- Add more items if the site becomes multi-page or dynamic.
+- Consider supporting Atom or JSON Feed formats if needed.

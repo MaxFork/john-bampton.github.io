@@ -151,6 +151,28 @@ def minify_css(code: str) -> str:
 
 
 def run() -> None:
+    def generate_rss_feed(title: str, link: str, description: str, output_path: str) -> None:
+            """Generate a basic RSS feed for the site."""
+            rss = f'''<?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+        <channel>
+            <title>{title}</title>
+            <link>{link}</link>
+            <description>{description}</description>
+            <item>
+                <title>{title}</title>
+                <link>{link}</link>
+                <description>{description}</description>
+                <pubDate>{datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')}</pubDate>
+                <guid>{link}</guid>
+            </item>
+        </channel>
+    </rss>
+    '''
+            with open(output_path, "w", encoding="utf-8") as f:
+                    f.write(rss)
+            logger.info("RSS feed generated at %s", output_path)
+
     """Main entry point: load cache, export JSON, and generate minified HTML shell."""
     ensure_dir(SITE_DIR)
 
@@ -164,6 +186,7 @@ def run() -> None:
     logger.info("Building HTML shell (header + footer + empty grid)...")
     html_content = minify_html(build_html())
 
+
     try:
         output_file = os.path.join(SITE_DIR, "index.html")
         with open(output_file, "w", encoding="utf-8") as f:
@@ -172,8 +195,17 @@ def run() -> None:
             "HTML shell saved successfully. Total users available: %d",
             len(users),
         )
+        # Generate RSS feed for the site
+        import datetime
+        rss_path = os.path.join(SITE_DIR, "feed.xml")
+        generate_rss_feed(
+            title="John Bampton Faces",
+            link="https://john-bampton.github.io/",
+            description="GitHub Faces - curated list of GitHub users.",
+            output_path=rss_path,
+        )
     except Exception as e:
-        logger.error("Failed to save HTML page: %s", e)
+        logger.error("Failed to save HTML page or RSS feed: %s", e)
 
 
 if __name__ == "__main__":
