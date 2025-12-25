@@ -35,6 +35,14 @@ def setup_logger() -> logging.Logger:
 logger = setup_logger()
 
 
+def safe_path(path: str, base_dir: str = SITE_DIR) -> str:
+    """Ensure the path is within the allowed base directory."""
+    abs_path = os.path.abspath(path)
+    abs_base = os.path.abspath(base_dir)
+    if not abs_path.startswith(abs_base):
+        raise ValueError(f"Unsafe file path detected: {path}")
+    return abs_path
+
 def ensure_dir(path: str) -> None:
     """Create directory if it doesn't exist."""
     if not os.path.exists(path):
@@ -79,13 +87,14 @@ def prepare_users(users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def load_cache(cache_file: str = CACHE_FILE) -> List[Dict[str, Any]]:
     """Load user data from JSON cache file."""
-    if not os.path.exists(cache_file):
-        logger.error("Cache file not found: %s", cache_file)
+    safe_cache_file = safe_path(cache_file)
+    if not os.path.exists(safe_cache_file):
+        logger.error("Cache file not found: %s", safe_cache_file)
         logger.error("Please run fetch_users.py first to fetch and cache user data.")
         return []
 
     try:
-        with open(cache_file, "r", encoding="utf-8") as f:
+        with open(safe_cache_file, "r", encoding="utf-8") as f:
             users = json.load(f)
         logger.info("Loaded %d users from cache", len(users))
         return users
@@ -168,8 +177,6 @@ def generate_rss_feed(
     title: str, link: str, description: str, items: list, output_path: str
 ) -> None:
     """Generate a basic RSS feed for the site with multiple items."""
-    import datetime
-
     rss_items = ""
     for item in items:
         item_title = item.get("title", title)
@@ -199,9 +206,10 @@ def generate_rss_feed(
 </rss>
 """
     minified_rss = minify_xml(rss)
-    with open(output_path, "w", encoding="utf-8") as f:
+    safe_output_path = safe_path(output_path)
+    with open(safe_output_path, "w", encoding="utf-8") as f:
         f.write(minified_rss)
-    logger.info("RSS feed generated at %s", output_path)
+    logger.info("RSS feed generated at %s", safe_output_path)
 
 
 def run() -> None:
@@ -220,7 +228,8 @@ def run() -> None:
 
     try:
         output_file = os.path.join(SITE_DIR, "index.html")
-        with open(output_file, "w", encoding="utf-8") as f:
+        safe_output_file = safe_path(output_file)
+        with open(safe_output_file, "w", encoding="utf-8") as f:
             f.write(html_content)
         logger.info(
             "HTML shell saved successfully. Total users available: %d",

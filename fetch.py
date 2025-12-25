@@ -11,7 +11,7 @@ from urllib.request import urlretrieve
 
 import requests
 
-CACHE_DIR = "./docs"
+SITE_DIR = "./docs"
 FACES_DIR = "./docs/images/faces"
 GITHUB_USER_SEARCH_URL = (
     "https://api.github.com/search/users?q=followers:1..10000000&per_page=100&page="
@@ -31,6 +31,15 @@ DAY_SECONDS = 24 * HOUR_SECONDS
 WEEK_SECONDS = 7 * DAY_SECONDS
 
 
+def safe_path(path: str, base_dir: str = SITE_DIR) -> str:
+    """Ensure the path is within the allowed base directory."""
+    abs_path = os.path.abspath(path)
+    abs_base = os.path.abspath(base_dir)
+    if not abs_path.startswith(abs_base):
+        raise ValueError(f"Unsafe file path detected: {path}")
+    return abs_path
+
+
 def safe_urlretrieve(url, filename, *args, **kwargs):
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https"):
@@ -42,33 +51,34 @@ def load_previous_users(path: str = "./docs/users.json") -> Dict[str, Dict[str, 
     """Load previous user data from a JSON file and index it by login.
     This is used to calculate follower growth for the trending feature.
     """
-    if not os.path.exists(path):
+    safe_file = safe_path(path)
+    if not os.path.exists(safe_file):
         return {}
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(safe_file, "r", encoding="utf-8") as f:
             users = json.load(f)
         if not isinstance(users, list):
-            logger.warning(f"Data in {path} is not a list, returning empty dict.")
+            logger.warning(f"Data in {safe_file} is not a list, returning empty dict.")
             return {}
         return {u["login"]: u for u in users if isinstance(u, dict) and "login" in u}
     except (IOError, json.JSONDecodeError) as e:
-        logger.warning(f"Failed to load or parse previous users from {path}: {e}")
+        logger.warning(f"Failed to load or parse previous users from {safe_file}: {e}")
         return {}
 
 
 def setup_logger() -> logging.Logger:
-    """Initialize and configure logger for GitHub user fetching."""
-    logger = logging.getLogger("GithubFaces.Fetch")
-    logger.setLevel(logging.INFO)
+    """Initialize and configure logger for HTML rendering."""
+    log = logging.getLogger("GithubFaces.Fetch")
+    log.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     formatter = logging.Formatter(
         "[%(asctime)s] %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"
     )
     ch.setFormatter(formatter)
-    if not logger.handlers:
-        logger.addHandler(ch)
-    return logger
+    if not log.handlers:
+        log.addHandler(ch)
+    return log
 
 
 logger = setup_logger()
@@ -148,7 +158,8 @@ def clean_old_avatars(current_logins: List[str], faces_dir: str) -> None:
         if filename.endswith(".png"):
             login = filename.rsplit(".", 1)[0].lower()
             if login not in current_logins:
-                os.remove(os.path.join(faces_dir, filename))
+                file_path = safe_path(os.path.join(faces_dir, filename), faces_dir)
+                os.remove(file_path)
                 logger.info("Removed old avatar: %s", filename)
 
 
@@ -555,10 +566,11 @@ def fetch_users_from_search(target: int = TARGET_USERS) -> List[Dict[str, Any]]:
 
 def save_cache(users: List[Dict[str, Any]]) -> None:
     """Save user data to JSON cache file."""
-    ensure_dir(CACHE_DIR)
-    cache_file = os.path.join(CACHE_DIR, "users.json")
+    ensure_dir(SITE_DIR)
+    cache_file = os.path.join(SITE_DIR, "users.json")
+    safe_cache_file = safe_path(cache_file)
     try:
-        with open(cache_file, "w", encoding="utf-8") as f:
+        with open(safe_cache_file, "w", encoding="utf-8") as f:
             json.dump(
                 users,
                 f,
