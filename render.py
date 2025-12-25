@@ -108,11 +108,14 @@ def minify_html(html: str) -> str:
     html = re.sub(r"<!--[\s\S]*?-->", "", html)
     html = re.sub(r">\s+<", "><", html)
     html = re.sub(r"\s{2,}", " ", html)
+
     def minify_script_tag(match):
         tag = match.group(0)
         attrs = match.group(1)
         content = match.group(2)
-        if re.search(r'src\s*=\s*(["\"]).*?\1', attrs, re.IGNORECASE):
+        if re.search(
+            r'src\s*=\s*(?:["\"][^"\"]*["\"]|\'[^\']*\'|[^\s>]+)', attrs, re.IGNORECASE
+        ):
             return tag
         return f"<script{attrs}>{minify_js(content)}</script>"
 
