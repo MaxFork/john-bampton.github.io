@@ -1,124 +1,101 @@
-# The 400 Faces - Scrape Your GitHub Avatars
+# GitHub Faces: Curated Avatars & Profiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 [![GitHub contributors](https://img.shields.io/github/contributors/john-bampton/john-bampton.github.io.svg)](https://github.com/john-bampton/john-bampton.github.io/graphs/contributors)
 
-A Python script to fetch and display the top 400 GitHub user avatars in a sleek, interactive grid. Perfect for exploring the faces behind popular GitHub profiles.
+> "Explore the faces behind GitHub. Discover the people shaping open-source."
+
+Explore and showcase the top GitHub user avatars in a modern, interactive grid. This project fetches, caches, and displays real GitHub profiles with up-to-date avatars and stats.
 
 ---
 
-## Features
+## 🚀 Features
 
-- Fetches GitHub users dynamically via the GitHub API.
-- Downloads avatars for offline use.
-- Builds a responsive HTML page showcasing all avatars.
-- Filters only real users (`type: User`) to ensure authentic profiles.
-- Automatically updates avatars when new versions are available.
-- Clean and modern card design using Bootstrap.
-
----
-
-## Preview
-
-Check out the live preview: [https://john-bampton.github.io/](https://john-bampton.github.io/)
+- Dynamic fetching of GitHub users via the API
+- Secure avatar downloads and cache management
+- Responsive HTML grid with Bootstrap
+- Real user filtering (`type: User`)
+- Automatic avatar updates
+- RSS feed for new faces
+- Modern, clean design
+- Pre-commit hooks for code quality (black, isort)
+- XSS-safe Jinja2 templates
 
 ---
 
-## Installation
+## 🌐 Live Preview
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/john-bampton/john-bampton.github.io.git
-cd faces
-````
-
-2. Install dependencies:
-
-```bash
-pip install -e .
-```
-
-3. Run the script:
-
-```bash
-python github_faces.py
-```
-
-4. Open the generated HTML page in your browser:
-
-```bash
-docs/index.html
-```
+[View the site](https://john-bampton.github.io/)
 
 ---
 
-## Configuration
+## ⚡ Quickstart
 
-* **TARGET_USERS**: Number of GitHub users to fetch (default: 400).
-* **MAX_EXTRA_PAGES**: Extra pages to fetch if not enough users are found (default: 2).
-
-You can modify these directly in `github_faces.py`.
+1. **Clone the repo:**
+	```bash
+	git clone https://github.com/john-bampton/john-bampton.github.io.git
+	cd john-bampton.github.io
+	```
+2. **Install dependencies:**
+	```bash
+	pip install -e .
+	```
+3. **Run the fetcher:**
+	```bash
+	python fetch.py
+	```
+4. **Open the grid:**
+	```bash
+	docs/index.html
+	```
 
 ---
 
-## Screenshots
+## ⚙️ Configuration
+
+- `TARGET_USERS`: Number of GitHub users to fetch (default: 400, or 20 in test mode)
+- `MAX_EXTRA_PAGES`: Extra pages to fetch if needed (default: 2)
+- Set `APP_ENV=test` for test mode (fetches 20 users)
+
+---
+
+## 🖼️ Screenshots
 
 ![Sample Faces](docs/images/other/screenshot-1280.png)
 
 ---
 
+## 🛠️ Development & Quality
+
+- Code formatted with [black](https://github.com/psf/black) and [isort](https://github.com/pycqa/isort)
+- Pre-commit hooks: see `.pre-commit-config.yaml`
+- Configs in `pyproject.toml`
+- Linting: flake8, pylint, yamllint
+
+---
+
+## 📦 RSS Feed
+
+- RSS feed generated at [docs/feed.xml](https://john-bampton.github.io/feed.xml)
+- Auto-generated when you run `render.py`
+- Follows RSS 2.0 format
+- Subscribe for new updates
+
+---
+
+## 🤝 Contributing
+
+We welcome PRs, issues, and suggestions! Add a ⭐, fork, or help improve the grid and features.
+
+---
+
 ## Powered by
 
-[![Python Powered](docs/images/other/python-logo.png)](https://www.python.org/)
-[![PyCharm Powered](docs/images/other/pycharm-logo.png)](https://www.jetbrains.com/pycharm/)
+[<img src="docs/images/other/python-logo.png" alt="Python Powered" style="height:80px;">](https://www.python.org/)
+[<img src="docs/images/other/pycharm-logo.png" alt="PyCharm Powered" style="height:80px;">](https://www.jetbrains.com/pycharm/)
 
 ---
 
-## Contributing
+## 📝 License
 
-We welcome contributions! Feel free to:
-
-* Submit issues for bugs or feature requests.
-* Fork the repository and open pull requests.
-* Suggest new ways to improve the avatar grid or functionality.
-* Spread the word by adding a ⭐ to this repository.
-
----
-
-## Acknowledgements
-
-Inspired by the GitHub community and the creativity of open-source developers.
-Special thanks to all contributors and avatar owners included in this project.
-
-The idea for this showcase site originally came from the movie [300](https://en.wikipedia.org/wiki/300_(film)).
-The plot revolves around King Leonidas (Gerard Butler), who leads 300 Spartans into
-battle against the Persian "God-King" Xerxes (Rodrigo Santoro). Here our showcase is
-currently led by [Linus Torvalds](https://en.wikipedia.org/wiki/Linus_Torvalds).
-
----
-
-## License
-
-This project is licensed under the MIT License.
-
-© 2025 John Bampton, and Seyyed Ali Mohammadiyeh (Max Base).
-
----
-
-> "Explore the faces behind GitHub. Discover the people shaping open-source."
-
-# RSS Feed
-
-This site now generates an RSS feed at docs/feed.xml. The feed contains a single item for the main page. You can subscribe to this feed in any RSS reader.
-
-## How it works
-- The feed is generated automatically when you run render.py.
-- The feed follows RSS 2.0 format and includes the site title, link, description, and publication date.
-
-## Example feed URL
-https://john-bampton.github.io/feed.xml
-
-## Future improvements
-- Add more items if the site becomes multi-page or dynamic.
-- Consider supporting Atom or JSON Feed formats if needed.
+MIT License © 2025 John Bampton & Seyyed Ali Mohammadiyeh (Max Base)
