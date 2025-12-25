@@ -7,6 +7,7 @@ import time
 from calendar import timegm
 from typing import Any, Dict, List, Tuple
 from urllib.request import urlretrieve
+from urllib.parse import urlparse
 
 import requests
 
@@ -21,11 +22,19 @@ GITHUB_USER_REPOS_URL = (
 )
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 
-TARGET_USERS = 400
-# TARGET_USERS = 20
+APP_ENV = os.environ.get("APP_ENV", "production")
+TARGET_USERS = 20 if APP_ENV == "test" else 400
 MAX_EXTRA_PAGES = 2
 
-WEEK_SECONDS = 7 * 24 * 60 * 60  # for trending feature
+HOUR_SECONDS = 60 * 60 * 1000
+DAY_SECONDS = 24 * HOUR_SECONDS
+WEEK_SECONDS = 7 * DAY_SECONDS
+
+def safe_urlretrieve(url, filename, *args, **kwargs):
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Unsafe URL scheme: {parsed.scheme}")
+    return urlretrieve(url, filename, *args, **kwargs)
 
 
 def load_previous_users(path: str = "./docs/users.json") -> Dict[str, Dict[str, Any]]:
@@ -111,7 +120,7 @@ def download_single_avatar(user: Dict[str, Any], faces_dir: str) -> None:
 
     if should_download(file_path, user["avatar_url"]):
         try:
-            urlretrieve(user["avatar_url"], file_path)
+            safe_urlretrieve(user["avatar_url"], file_path)
             logger.info("Downloaded/Updated avatar: %s", user["login"])
         except Exception as e:
             logger.error("Failed to download avatar for %s: %s", user["login"], e)
@@ -242,7 +251,6 @@ def compute_follower_growth(
     prev_followers = prev_user_data.get("followers")
     prev_snapshot_at = prev_user_data.get("followers_snapshot_at")
 
-    # If no valid previous data, initialize snapshot time and return no growth.
     if not isinstance(prev_followers, int) or not isinstance(prev_snapshot_at, int):
         return {
             "followers_previous": None,
@@ -250,7 +258,6 @@ def compute_follower_growth(
             "followers_snapshot_at": int(time.time()),
         }
 
-    # If it's not yet time to calculate new growth, return old data to preserve it.
     if time.time() - prev_snapshot_at < WEEK_SECONDS:
         return {
             "followers_previous": prev_followers,
@@ -258,7 +265,6 @@ def compute_follower_growth(
             "followers_snapshot_at": prev_snapshot_at,
         }
 
-    # Time to calculate new growth.
     if not isinstance(current_followers, int) or prev_followers <= 0:
         return {
             "followers_previous": prev_followers,
@@ -299,7 +305,6 @@ def enrich_user_with_details(
     user["sponsoring_count"] = sponsorship["sponsoring_count"]
     user["avatar_updated_at"] = detail.get("updated_at", "")
 
-    # Trending feature
     growth = compute_follower_growth(
         login=user["login"],
         current_followers=user["followers"],
@@ -577,7 +582,7 @@ def run() -> None:
     logger.info("Target users: %d", TARGET_USERS)
     logger.info("")
 
-    previous_users = load_previous_users()  # for trending feature
+    previous_users = load_previous_users()
 
     users = fetch_users_from_search(TARGET_USERS)
 

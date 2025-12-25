@@ -1,8 +1,9 @@
 
 const SERVICE_WORKER_VERSION = 1;
 const PRECACHE = `john-bampton-v${SERVICE_WORKER_VERSION}`;
-const ONE_HOUR = 60 * 60 * 1000;
-const ONE_DAY = 24 * ONE_HOUR;
+const HOUR_SECONDS = 60 * 60 * 1000;
+const DAY_SECONDS = 24 * HOUR_SECONDS;
+const WEEK_SECONDS = 7 * DAY_SECONDS;
 const PRECACHE_URLS = [
   'index.html', './', 'styles.css',
   'bootstrap/css/bootstrap.css', 'bootstrap/css/bootstrap.min.css',
@@ -11,7 +12,7 @@ const PRECACHE_URLS = [
   'script.js', 'bootstrap/js/bootstrap.min.js',
   'bootstrap/js/jquery.min.js', 'bootstrap/js/popper.min.js', 'manifest.json',
 ];
-const CACHE_EXPIRATION = { 'users.json': 3 * ONE_DAY };
+const CACHE_EXPIRATION = { 'users.json': 3 * DAY_SECONDS };
 
 function getCache() { return caches.open(PRECACHE); }
 function cacheUrls(cache) { return cache.addAll(PRECACHE_URLS); }
