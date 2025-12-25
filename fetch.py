@@ -25,6 +25,25 @@ TARGET_USERS = 400
 # TARGET_USERS = 20
 MAX_EXTRA_PAGES = 2
 
+WEEK_SECONDS = 7 * 24 * 60 * 60 # for trending feature
+
+def load_previous_users(path: str = "./docs/users.json") -> Dict[str, Dict[str, Any]]:
+    """Load previous user data from a JSON file and index it by login.
+    This is used to calculate follower growth for the trending feature.
+    """
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            users = json.load(f)
+        if not isinstance(users, list):
+            logger.warning(f"Data in {path} is not a list, returning empty dict.")
+            return {}
+        return {u["login"]: u for u in users if isinstance(u, dict) and "login" in u}
+    except (IOError, json.JSONDecodeError) as e:
+        logger.warning(f"Failed to load or parse previous users from {path}: {e}")
+        return {}
+
 
 def setup_logger() -> logging.Logger:
     """Initialize and configure logger for GitHub user fetching."""
@@ -211,8 +230,48 @@ def fetch_user_detail_with_retry(login: str, max_retries: int = 5) -> Dict[str, 
     logger.warning("Failed to fetch %s after %d attempts", login, max_retries)
     return {}
 
+def compute_follower_growth(login: str, current_followers: Any, previous_users: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Trending feature: compute follower growth data, including snapshot timestamp.
+    """
+    prev_user_data = previous_users.get(login, {})
+    prev_followers = prev_user_data.get("followers")
+    prev_snapshot_at = prev_user_data.get("followers_snapshot_at")
 
-def enrich_user_with_details(user: Dict[str, Any], idx: int, total: int) -> None:
+    # If no valid previous data, initialize snapshot time and return no growth.
+    if not isinstance(prev_followers, int) or not isinstance(prev_snapshot_at, int):
+        return {
+            "followers_previous": None,
+            "followers_growth_pct": None,
+            "followers_snapshot_at": int(time.time()),
+        }
+
+    # If it's not yet time to calculate new growth, return old data to preserve it.
+    if time.time() - prev_snapshot_at < WEEK_SECONDS:
+        return {
+            "followers_previous": prev_followers,
+            "followers_growth_pct": prev_user_data.get("followers_growth_pct"),
+            "followers_snapshot_at": prev_snapshot_at,
+        }
+
+    # Time to calculate new growth.
+    if not isinstance(current_followers, int) or prev_followers <= 0:
+        return {
+            "followers_previous": prev_followers,
+            "followers_growth_pct": None,
+            "followers_snapshot_at": int(time.time()),
+        }
+
+    growth_pct = ((current_followers - prev_followers) / prev_followers) * 100
+
+    return {
+        "followers_previous": prev_followers,
+        "followers_growth_pct": round(growth_pct, 2),
+        "followers_snapshot_at": int(time.time()),
+    }
+
+
+def enrich_user_with_details(user: Dict[str, Any], idx: int, total: int, previous_users: Dict[str, Dict[str, Any]]) -> None:
     """Add detailed information (followers, repos, sponsors) to user dict."""
     detail = fetch_user_detail_with_retry(user["login"])
     if not detail:
@@ -231,6 +290,14 @@ def enrich_user_with_details(user: Dict[str, Any], idx: int, total: int) -> None
     user["sponsoring_count"] = sponsorship["sponsoring_count"]
     user["avatar_updated_at"] = detail.get("updated_at", "")
 
+    # Trending feature
+    growth = compute_follower_growth(
+        login=user["login"],
+        current_followers=user["followers"],
+        previous_users=previous_users,
+    )
+    user.update(growth)
+
     lang_totals, total_stars, last_repo_push_at = fetch_user_repo_summary(user["login"])
     user["top_languages"] = summarize_top_languages(lang_totals)
     user["total_stars"] = total_stars
@@ -247,11 +314,11 @@ def enrich_user_with_details(user: Dict[str, Any], idx: int, total: int) -> None
     time.sleep(0.15)
 
 
-def enrich_all_users(users: List[Dict[str, Any]]) -> None:
+def enrich_all_users(users: List[Dict[str, Any]], previous_users: Dict[str, Dict[str, Any]]) -> None:
     """Enrich all users with detailed information from GitHub API."""
     total = len(users)
     for idx, user in enumerate(users, 1):
-        enrich_user_with_details(user, idx, total)
+        enrich_user_with_details(user, idx, total, previous_users)
 
 
 def fetch_user_repo_summary(
@@ -499,6 +566,8 @@ def run() -> None:
     logger.info("Target users: %d", TARGET_USERS)
     logger.info("")
 
+    previous_users = load_previous_users() # for trending feature
+
     users = fetch_users_from_search(TARGET_USERS)
 
     if not users:
@@ -509,7 +578,7 @@ def run() -> None:
     logger.info("Fetching extra details (followers, following, location)...")
     logger.info("")
 
-    enrich_all_users(users)
+    enrich_all_users(users, previous_users)
 
     print_section("Downloading/updating avatars...")
     download_avatars(users, FACES_DIR)
