@@ -1,6 +1,6 @@
 
 const SERVICE_WORKER_VERSION = 1;
-const PRECACHE = `johnbampton-v${SERVICE_WORKER_VERSION}`;
+const PRECACHE = `john-bampton-v${SERVICE_WORKER_VERSION}`;
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 const PRECACHE_URLS = [
