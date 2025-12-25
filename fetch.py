@@ -6,11 +6,11 @@ import os
 import time
 from calendar import timegm
 from typing import Any, Dict, List, Tuple
-from urllib.request import urlretrieve
+from urllib.parse import urlparse
 
 import requests
 
-CACHE_DIR = "./docs"
+SITE_DIR = "./docs"
 FACES_DIR = "./docs/images/faces"
 GITHUB_USER_SEARCH_URL = (
     "https://api.github.com/search/users?q=followers:1..10000000&per_page=100&page="
@@ -21,44 +21,91 @@ GITHUB_USER_REPOS_URL = (
 )
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 
-TARGET_USERS = 400
-# TARGET_USERS = 20
+APP_ENV = os.environ.get("APP_ENV", "production")
+TARGET_USERS = 20 if APP_ENV == "test" else 400
 MAX_EXTRA_PAGES = 2
 
-WEEK_SECONDS = 7 * 24 * 60 * 60  # for trending feature
+HOUR_SECONDS = 60 * 60 * 1000
+DAY_SECONDS = 24 * HOUR_SECONDS
+WEEK_SECONDS = 7 * DAY_SECONDS
+
+
+def safe_path(path: str, base_dir: str = SITE_DIR) -> str:
+    """Ensure the path is within the allowed base directory."""
+    abs_path = os.path.abspath(path)
+    abs_base = os.path.abspath(base_dir)
+    if not abs_path.startswith(abs_base):
+        raise ValueError(f"Unsafe file path detected: {path}")
+    return abs_path
+
+
+def download_file_http(url: str, dest_path: str, timeout: int = 10) -> None:
+    """
+    Securely download a file using HTTP(S) only.
+    - No urllib
+    - No redirects
+    - Explicit scheme and host validation
+    """
+
+    parsed = urlparse(url)
+
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Unsafe URL scheme: {parsed.scheme}")
+
+    if not parsed.netloc:
+        raise ValueError("URL must contain a valid host")
+
+    response = requests.get(
+        url,
+        stream=True,
+        timeout=timeout,
+        allow_redirects=False,
+        headers={"User-Agent": "avatar-downloader/1.0"},
+    )
+
+    response.raise_for_status()
+
+    safe_dest_path = safe_path(dest_path)
+    os.makedirs(os.path.dirname(safe_dest_path), exist_ok=True)
+
+    with open(safe_dest_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:
+                f.write(chunk)
 
 
 def load_previous_users(path: str = "./docs/users.json") -> Dict[str, Dict[str, Any]]:
     """Load previous user data from a JSON file and index it by login.
     This is used to calculate follower growth for the trending feature.
     """
-    if not os.path.exists(path):
+    safe_file = safe_path(path)
+    if not os.path.exists(safe_file):
         return {}
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(safe_file, "r", encoding="utf-8") as f:
             users = json.load(f)
         if not isinstance(users, list):
-            logger.warning(f"Data in {path} is not a list, returning empty dict.")
+            logger.warning(f"Data in {safe_file} is not a list, returning empty dict.")
             return {}
         return {u["login"]: u for u in users if isinstance(u, dict) and "login" in u}
     except (IOError, json.JSONDecodeError) as e:
-        logger.warning(f"Failed to load or parse previous users from {path}: {e}")
+        logger.warning(f"Failed to load or parse previous users from {safe_file}: {e}")
         return {}
 
 
 def setup_logger() -> logging.Logger:
-    """Initialize and configure logger for GitHub user fetching."""
-    logger = logging.getLogger("GithubFaces.Fetch")
-    logger.setLevel(logging.INFO)
+    """Initialize and configure logger for HTML rendering."""
+    log = logging.getLogger("GithubFaces.Fetch")
+    log.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     formatter = logging.Formatter(
         "[%(asctime)s] %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"
     )
     ch.setFormatter(formatter)
-    if not logger.handlers:
-        logger.addHandler(ch)
-    return logger
+    if not log.handlers:
+        log.addHandler(ch)
+    return log
 
 
 logger = setup_logger()
@@ -111,7 +158,7 @@ def download_single_avatar(user: Dict[str, Any], faces_dir: str) -> None:
 
     if should_download(file_path, user["avatar_url"]):
         try:
-            urlretrieve(user["avatar_url"], file_path)
+            download_file_http(user["avatar_url"], file_path)
             logger.info("Downloaded/Updated avatar: %s", user["login"])
         except Exception as e:
             logger.error("Failed to download avatar for %s: %s", user["login"], e)
@@ -138,7 +185,8 @@ def clean_old_avatars(current_logins: List[str], faces_dir: str) -> None:
         if filename.endswith(".png"):
             login = filename.rsplit(".", 1)[0].lower()
             if login not in current_logins:
-                os.remove(os.path.join(faces_dir, filename))
+                file_path = safe_path(os.path.join(faces_dir, filename), faces_dir)
+                os.remove(file_path)
                 logger.info("Removed old avatar: %s", filename)
 
 
@@ -242,7 +290,6 @@ def compute_follower_growth(
     prev_followers = prev_user_data.get("followers")
     prev_snapshot_at = prev_user_data.get("followers_snapshot_at")
 
-    # If no valid previous data, initialize snapshot time and return no growth.
     if not isinstance(prev_followers, int) or not isinstance(prev_snapshot_at, int):
         return {
             "followers_previous": None,
@@ -250,7 +297,6 @@ def compute_follower_growth(
             "followers_snapshot_at": int(time.time()),
         }
 
-    # If it's not yet time to calculate new growth, return old data to preserve it.
     if time.time() - prev_snapshot_at < WEEK_SECONDS:
         return {
             "followers_previous": prev_followers,
@@ -258,7 +304,6 @@ def compute_follower_growth(
             "followers_snapshot_at": prev_snapshot_at,
         }
 
-    # Time to calculate new growth.
     if not isinstance(current_followers, int) or prev_followers <= 0:
         return {
             "followers_previous": prev_followers,
@@ -299,7 +344,6 @@ def enrich_user_with_details(
     user["sponsoring_count"] = sponsorship["sponsoring_count"]
     user["avatar_updated_at"] = detail.get("updated_at", "")
 
-    # Trending feature
     growth = compute_follower_growth(
         login=user["login"],
         current_followers=user["followers"],
@@ -549,10 +593,11 @@ def fetch_users_from_search(target: int = TARGET_USERS) -> List[Dict[str, Any]]:
 
 def save_cache(users: List[Dict[str, Any]]) -> None:
     """Save user data to JSON cache file."""
-    ensure_dir(CACHE_DIR)
-    cache_file = os.path.join(CACHE_DIR, "users.json")
+    ensure_dir(SITE_DIR)
+    cache_file = os.path.join(SITE_DIR, "users.json")
+    safe_cache_file = safe_path(cache_file)
     try:
-        with open(cache_file, "w", encoding="utf-8") as f:
+        with open(safe_cache_file, "w", encoding="utf-8") as f:
             json.dump(
                 users,
                 f,
@@ -577,7 +622,7 @@ def run() -> None:
     logger.info("Target users: %d", TARGET_USERS)
     logger.info("")
 
-    previous_users = load_previous_users()  # for trending feature
+    previous_users = load_previous_users()
 
     users = fetch_users_from_search(TARGET_USERS)
 
