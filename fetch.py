@@ -41,9 +41,16 @@ def safe_path(path: str, base_dir: str = SITE_DIR) -> str:
 
 
 def safe_urlretrieve(url, filename, *args, **kwargs):
+    """
+    Securely download a file from a URL, allowing only http/https schemes.
+    This prevents SSRF and local file access via urllib.
+    """
     parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https"):
-        raise ValueError(f"Unsafe URL scheme: {parsed.scheme}")
+    scheme = parsed.scheme.lower()
+    if scheme not in ("http", "https"):
+        raise ValueError(f"Unsafe URL scheme: {scheme}. Only http/https allowed.")
+    if not url.lower().startswith(("http://", "https://")):
+        raise ValueError(f"URL must start with http:// or https://: {url}")
     return urlretrieve(url, filename, *args, **kwargs)
 
 
