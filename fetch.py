@@ -30,6 +30,7 @@ HOUR_SECONDS = 60 * 60 * 1000
 DAY_SECONDS = 24 * HOUR_SECONDS
 WEEK_SECONDS = 7 * DAY_SECONDS
 
+
 def safe_urlretrieve(url, filename, *args, **kwargs):
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https"):

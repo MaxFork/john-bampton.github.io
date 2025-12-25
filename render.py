@@ -116,7 +116,9 @@ def minify_html(html: str) -> str:
         attrs = match.group(1)
         content = match.group(2)
 
-        if re.search(r'\bsrc\s*=\s*(?:["\"][^"\"]*["\"]|\'[^"]*\'|[^\s>]+)', attrs, re.IGNORECASE):
+        if re.search(
+            r'\bsrc\s*=\s*(?:["\"][^"\"]*["\"]|\'[^"]*\'|[^\s>]+)', attrs, re.IGNORECASE
+        ):
             return full_tag
 
         open_tag = f"<script{attrs}>"
@@ -162,17 +164,22 @@ def minify_css(code: str) -> str:
     return code.strip()
 
 
-def generate_rss_feed(title: str, link: str, description: str, items: list, output_path: str) -> None:
-        """Generate a basic RSS feed for the site with multiple items."""
-        import datetime
-        rss_items = ""
-        for item in items:
-                item_title = item.get("title", title)
-                item_link = item.get("link", link)
-                item_description = item.get("description", description)
-                item_pubDate = item.get("pubDate") or datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
-                item_guid = item.get("guid", item_link)
-                rss_items += f"""
+def generate_rss_feed(
+    title: str, link: str, description: str, items: list, output_path: str
+) -> None:
+    """Generate a basic RSS feed for the site with multiple items."""
+    import datetime
+
+    rss_items = ""
+    for item in items:
+        item_title = item.get("title", title)
+        item_link = item.get("link", link)
+        item_description = item.get("description", description)
+        item_pubDate = item.get("pubDate") or datetime.datetime.utcnow().strftime(
+            "%a, %d %b %Y %H:%M:%S GMT"
+        )
+        item_guid = item.get("guid", item_link)
+        rss_items += f"""
             <item>
                 <title>{item_title}</title>
                 <link>{item_link}</link>
@@ -181,7 +188,7 @@ def generate_rss_feed(title: str, link: str, description: str, items: list, outp
                 <guid>{item_guid}</guid>
             </item>
         """
-        rss = f'''<?xml version="1.0" encoding="UTF-8"?>
+    rss = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
     <channel>
         <title>{title}</title>
@@ -190,11 +197,11 @@ def generate_rss_feed(title: str, link: str, description: str, items: list, outp
 {rss_items}
     </channel>
 </rss>
-'''
-        minified_rss = minify_xml(rss)
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(minified_rss)
-        logger.info("RSS feed generated at %s", output_path)
+"""
+    minified_rss = minify_xml(rss)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(minified_rss)
+    logger.info("RSS feed generated at %s", output_path)
 
 
 def run() -> None:
@@ -227,7 +234,9 @@ def run() -> None:
                 "title": "John Bampton Faces",
                 "link": main_url,
                 "description": "GitHub Faces - curated list of GitHub users.",
-                "pubDate": datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT'),
+                "pubDate": datetime.datetime.now(datetime.timezone.utc).strftime(
+                    "%a, %d %b %Y %H:%M:%S GMT"
+                ),
                 "guid": main_url,
             },
         ]
