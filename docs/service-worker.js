@@ -3,7 +3,7 @@ const SERVICE_WORKER_VERSION = 1;
 const PRECACHE = `john-bampton-v${SERVICE_WORKER_VERSION}`;
 const HOUR_SECONDS = 60 * 60 * 1000;
 const DAY_SECONDS = 24 * HOUR_SECONDS;
-const WEEK_SECONDS = 7 * DAY_SECONDS;
+// const WEEK_SECONDS = 7 * DAY_SECONDS;
 const PRECACHE_URLS = [
   'index.html', './', 'styles.css',
   'bootstrap/css/bootstrap.css', 'bootstrap/css/bootstrap.min.css',
@@ -71,9 +71,9 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = event.request.url;
-  if (!url.startsWith(self.location.origin)) return;
+  if (!url.startsWith(self.location.origin)) return null;
   for (const [filename, maxAgeMs] of Object.entries(CACHE_EXPIRATION)) {
     if (url.endsWith(filename)) return handleExpiringFile(event, filename, maxAgeMs);
   }
-  handleDefaultFetch(event);
+  return handleDefaultFetch(event);
 });

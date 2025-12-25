@@ -911,10 +911,9 @@ function updateResultsMessage(sortedUsers) {
   const resultsFoundDesktop = document.getElementById('resultsFoundDesktop');
   const noResultsDesktop = document.getElementById('noResultsDesktop');
 
-  if (totalCount === 0) {
-
-  }
-  else if (visibleCount === 0) {
+  // TODO
+  // if (totalCount === 0) {}
+  if (visibleCount === 0) {
     if (resultsFound) resultsFound.style.display = 'none';
     if (noResults) noResults.style.display = 'block';
     if (resultsFoundDesktop) resultsFoundDesktop.style.display = 'none';
