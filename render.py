@@ -37,10 +37,10 @@ logger = setup_logger()
 
 def generate_sitemap_xml(urls: list, output_path: str) -> None:
     """Generate a simple sitemap.xml for search engines."""
-    urlset = ""
-    for url in urls:
-        urlset += f"    <url>\n        <loc>{url}</loc>\n    </url>\n"
-    sitemap = f"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n{urlset}</urlset>\n"""
+    urlset = "\n".join(
+        f"    <url>\n        <loc>{url}</loc>\n    </url>" for url in urls
+    )
+    sitemap = f"""<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n{urlset}\n</urlset>\n"""
     minified = minify_xml(sitemap)
     safe_output_path = safe_path(output_path)
     with open(safe_output_path, "w", encoding="utf-8") as f:
