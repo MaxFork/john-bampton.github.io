@@ -19,17 +19,17 @@ jinja_env = Environment(loader=FileSystemLoader(LAYOUTS_DIR))
 
 def setup_logger() -> logging.Logger:
     """Initialize and configure logger for HTML rendering."""
-    logger = logging.getLogger("GithubFaces.HTML")
-    logger.setLevel(logging.INFO)
+    log = logging.getLogger("GithubFaces.HTML")
+    log.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     formatter = logging.Formatter(
         "[%(asctime)s] %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"
     )
     ch.setFormatter(formatter)
-    if not logger.handlers:
-        logger.addHandler(ch)
-    return logger
+    if not log.handlers:
+        log.addHandler(ch)
+    return log
 
 
 logger = setup_logger()
