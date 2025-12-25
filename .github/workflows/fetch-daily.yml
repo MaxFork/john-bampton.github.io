@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v6
@@ -28,10 +29,12 @@ jobs:
       - name: Run fetch.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python fetch.py
+        run: |
+          APP_ENV=production python fetch.py
 
       - name: Run render.py
-        run: python render.py
+        run: |
+          python render.py
 
       - name: Check for changes
         id: changes

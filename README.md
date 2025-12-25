@@ -36,14 +36,21 @@ Explore and showcase the top GitHub user avatars in a modern, interactive grid. 
 	git clone https://github.com/john-bampton/john-bampton.github.io.git
 	cd john-bampton.github.io
 	```
+
 2. **Install dependencies:**
 	```bash
 	pip install -e .
 	```
+
 3. **Run the fetcher:**
 	```bash
-	python fetch.py
+	APP_ENV=test python fetch.py
 	```
+	<br>
+	<sup>
+	<b>Tip:</b> Setting <code>APP_ENV=test</code> will fetch only <b>20 users</b> for fast testing. Omit this variable to fetch <b>400 users</b> (default, production mode).
+	</sup>
+
 4. **Open the grid:**
 	```bash
 	docs/index.html
@@ -70,7 +77,7 @@ Explore and showcase the top GitHub user avatars in a modern, interactive grid. 
 - Code formatted with [black](https://github.com/psf/black) and [isort](https://github.com/pycqa/isort)
 - Pre-commit hooks: see `.pre-commit-config.yaml`
 - Configs in `pyproject.toml`
-- Linting: flake8, pylint, yamllint
+- Linting: flake8, pylint, yamllint, isort, black
 
 ---
 
@@ -85,7 +92,18 @@ Explore and showcase the top GitHub user avatars in a modern, interactive grid. 
 
 ## 🤝 Contributing
 
+
 We welcome PRs, issues, and suggestions! Add a ⭐, fork, or help improve the grid and features.
+
+**Code Quality Reminder:**
+
+- Always run `pre-commit run --all-files` before pushing or opening a pull request. This ensures your code is auto-formatted and passes all checks.
+- If you don't have pre-commit installed, run:
+	```bash
+	pip install pre-commit
+	pre-commit install
+	```
+	This sets up the hooks for your local repo.
 
 ---
 
