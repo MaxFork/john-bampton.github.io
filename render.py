@@ -114,7 +114,7 @@ def minify_html(html: str) -> str:
         attrs = match.group(1)
         content = match.group(2)
         if re.search(
-            r'src\s*=\s*(?:["\"][^"\"]*["\"]|\'[^\']*\'|[^\s>]+)', attrs, re.IGNORECASE
+            r'\bsrc\s*=\s*(?:["\"][^"\"]*["\"]|\'[^\']*\'|[^\s>]+)', attrs, re.IGNORECASE
         ):
             return tag
         return f"<script{attrs}>{minify_js(content)}</script>"
