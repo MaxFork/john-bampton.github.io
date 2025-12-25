@@ -7,7 +7,6 @@ import time
 from calendar import timegm
 from typing import Any, Dict, List, Tuple
 from urllib.parse import urlparse
-from urllib.request import urlretrieve
 
 import requests
 
@@ -40,18 +39,38 @@ def safe_path(path: str, base_dir: str = SITE_DIR) -> str:
     return abs_path
 
 
-def safe_urlretrieve(url, filename, *args, **kwargs):
+def download_file_http(url: str, dest_path: str, timeout: int = 10) -> None:
     """
-    Securely download a file from a URL, allowing only http/https schemes.
-    This prevents SSRF and local file access via urllib.
+    Securely download a file using HTTP(S) only.
+    - No urllib
+    - No redirects
+    - Explicit scheme and host validation
     """
+
     parsed = urlparse(url)
-    scheme = parsed.scheme.lower()
-    if scheme not in ("http", "https"):
-        raise ValueError(f"Unsafe URL scheme: {scheme}. Only http/https allowed.")
-    if not url.lower().startswith(("http://", "https://")):
-        raise ValueError(f"URL must start with http:// or https://: {url}")
-    return urlretrieve(url, filename, *args, **kwargs)
+
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Unsafe URL scheme: {parsed.scheme}")
+
+    if not parsed.netloc:
+        raise ValueError("URL must contain a valid host")
+
+    response = requests.get(
+        url,
+        stream=True,
+        timeout=timeout,
+        allow_redirects=False,
+        headers={"User-Agent": "avatar-downloader/1.0"},
+    )
+
+    response.raise_for_status()
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+
+    with open(dest_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:
+                f.write(chunk)
 
 
 def load_previous_users(path: str = "./docs/users.json") -> Dict[str, Dict[str, Any]]:
@@ -138,7 +157,7 @@ def download_single_avatar(user: Dict[str, Any], faces_dir: str) -> None:
 
     if should_download(file_path, user["avatar_url"]):
         try:
-            safe_urlretrieve(user["avatar_url"], file_path)
+            download_file_http(user["avatar_url"], file_path)
             logger.info("Downloaded/Updated avatar: %s", user["login"])
         except Exception as e:
             logger.error("Failed to download avatar for %s: %s", user["login"], e)
