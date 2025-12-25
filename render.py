@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import datetime
 from typing import Any, Dict, List
 
 from jinja2 import Environment, FileSystemLoader
@@ -150,29 +151,41 @@ def minify_css(code: str) -> str:
     return code.strip()
 
 
-def run() -> None:
-    def generate_rss_feed(title: str, link: str, description: str, output_path: str) -> None:
-            """Generate a basic RSS feed for the site."""
-            rss = f'''<?xml version="1.0" encoding="UTF-8"?>
-    <rss version="2.0">
-        <channel>
-            <title>{title}</title>
-            <link>{link}</link>
-            <description>{description}</description>
+def generate_rss_feed(title: str, link: str, description: str, items: list, output_path: str) -> None:
+        """Generate a basic RSS feed for the site with multiple items."""
+        import datetime
+        rss_items = ""
+        for item in items:
+                item_title = item.get("title", title)
+                item_link = item.get("link", link)
+                item_description = item.get("description", description)
+                item_pubDate = item.get("pubDate") or datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+                item_guid = item.get("guid", item_link)
+                rss_items += f"""
             <item>
-                <title>{title}</title>
-                <link>{link}</link>
-                <description>{description}</description>
-                <pubDate>{datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')}</pubDate>
-                <guid>{link}</guid>
+                <title>{item_title}</title>
+                <link>{item_link}</link>
+                <description>{item_description}</description>
+                <pubDate>{item_pubDate}</pubDate>
+                <guid>{item_guid}</guid>
             </item>
-        </channel>
-    </rss>
-    '''
-            with open(output_path, "w", encoding="utf-8") as f:
-                    f.write(rss)
-            logger.info("RSS feed generated at %s", output_path)
+        """
+        rss = f'''<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>{title}</title>
+        <link>{link}</link>
+        <description>{description}</description>
+{rss_items}
+    </channel>
+</rss>
+'''
+        with open(output_path, "w", encoding="utf-8") as f:
+                f.write(rss)
+        logger.info("RSS feed generated at %s", output_path)
 
+
+def run() -> None:
     """Main entry point: load cache, export JSON, and generate minified HTML shell."""
     ensure_dir(SITE_DIR)
 
@@ -195,13 +208,22 @@ def run() -> None:
             "HTML shell saved successfully. Total users available: %d",
             len(users),
         )
-        # Generate RSS feed for the site
-        import datetime
+
         rss_path = os.path.join(SITE_DIR, "feed.xml")
+        rss_items = [
+            {
+                "title": "John Bampton Faces",
+                "link": "https://john-bampton.github.io/",
+                "description": "GitHub Faces - curated list of GitHub users.",
+                "pubDate": datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT'),
+                "guid": "https://john-bampton.github.io/",
+            },
+        ]
         generate_rss_feed(
             title="John Bampton Faces",
             link="https://john-bampton.github.io/",
             description="GitHub Faces - curated list of GitHub users.",
+            items=rss_items,
             output_path=rss_path,
         )
     except Exception as e:
