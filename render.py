@@ -215,7 +215,7 @@ def run() -> None:
                 "title": "John Bampton Faces",
                 "link": "https://john-bampton.github.io/",
                 "description": "GitHub Faces - curated list of GitHub users.",
-                "pubDate": datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT'),
+                "pubDate": datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT'),
                 "guid": "https://john-bampton.github.io/",
             },
         ]
