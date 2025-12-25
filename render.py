@@ -43,6 +43,7 @@ def safe_path(path: str, base_dir: str = SITE_DIR) -> str:
         raise ValueError(f"Unsafe file path detected: {path}")
     return abs_path
 
+
 def ensure_dir(path: str) -> None:
     """Create directory if it doesn't exist."""
     if not os.path.exists(path):
