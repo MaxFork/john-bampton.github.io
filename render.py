@@ -14,10 +14,7 @@ CACHE_FILE = os.path.join(SITE_DIR, "users.json")
 LAYOUTS_DIR = "./layouts"
 DEPLOY_BASEURL = "https://john-bampton.github.io"
 
-jinja_env = Environment(
-    loader=FileSystemLoader(LAYOUTS_DIR),
-    autoescape=True
-)
+jinja_env = Environment(loader=FileSystemLoader(LAYOUTS_DIR), autoescape=True)
 
 
 def setup_logger() -> logging.Logger:
