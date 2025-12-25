@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+import datetime
 import json
 import logging
 import os
 import re
-import datetime
 from typing import Any, Dict, List
 
 from jinja2 import Environment, FileSystemLoader
@@ -14,7 +14,10 @@ CACHE_FILE = os.path.join(SITE_DIR, "users.json")
 LAYOUTS_DIR = "./layouts"
 DEPLOY_BASEURL = "https://john-bampton.github.io"
 
-jinja_env = Environment(loader=FileSystemLoader(LAYOUTS_DIR))
+jinja_env = Environment(
+    loader=FileSystemLoader(LAYOUTS_DIR),
+    autoescape=True
+)
 
 
 def setup_logger() -> logging.Logger:

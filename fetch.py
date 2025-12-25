@@ -6,8 +6,8 @@ import os
 import time
 from calendar import timegm
 from typing import Any, Dict, List, Tuple
-from urllib.request import urlretrieve
 from urllib.parse import urlparse
+from urllib.request import urlretrieve
 
 import requests
 
