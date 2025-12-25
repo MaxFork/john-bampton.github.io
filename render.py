@@ -12,6 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 SITE_DIR = "./docs"
 CACHE_FILE = os.path.join(SITE_DIR, "users.json")
 LAYOUTS_DIR = "./layouts"
+DEPLOY_BASEURL = "https://john-bampton.github.io"
 
 jinja_env = Environment(loader=FileSystemLoader(LAYOUTS_DIR))
 
@@ -143,6 +144,14 @@ def minify_js(code: str) -> str:
     return code.strip()
 
 
+def minify_xml(xml: str) -> str:
+    """Minify XML: remove comments, collapse whitespace between tags, remove redundant spaces."""
+    xml = re.sub(r"<!--.*?-->", "", xml, flags=re.DOTALL)
+    xml = re.sub(r">\s+<", "><", xml)
+    xml = re.sub(r"\s{2,}", " ", xml)
+    return xml.strip()
+
+
 def minify_css(code: str) -> str:
     """Minify inline CSS: remove comments, collapse whitespace, remove unnecessary spaces."""
     code = re.sub(r"/\*[\s\S]*?\*/", "", code)
@@ -180,8 +189,9 @@ def generate_rss_feed(title: str, link: str, description: str, items: list, outp
     </channel>
 </rss>
 '''
+        minified_rss = minify_xml(rss)
         with open(output_path, "w", encoding="utf-8") as f:
-                f.write(rss)
+            f.write(minified_rss)
         logger.info("RSS feed generated at %s", output_path)
 
 
@@ -199,7 +209,6 @@ def run() -> None:
     logger.info("Building HTML shell (header + footer + empty grid)...")
     html_content = minify_html(build_html())
 
-
     try:
         output_file = os.path.join(SITE_DIR, "index.html")
         with open(output_file, "w", encoding="utf-8") as f:
@@ -210,18 +219,19 @@ def run() -> None:
         )
 
         rss_path = os.path.join(SITE_DIR, "feed.xml")
+        main_url = DEPLOY_BASEURL + "/"
         rss_items = [
             {
                 "title": "John Bampton Faces",
-                "link": "https://john-bampton.github.io/",
+                "link": main_url,
                 "description": "GitHub Faces - curated list of GitHub users.",
                 "pubDate": datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT'),
-                "guid": "https://john-bampton.github.io/",
+                "guid": main_url,
             },
         ]
         generate_rss_feed(
             title="John Bampton Faces",
-            link="https://john-bampton.github.io/",
+            link=main_url,
             description="GitHub Faces - curated list of GitHub users.",
             items=rss_items,
             output_path=rss_path,
